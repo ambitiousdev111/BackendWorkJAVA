@@ -1,6 +1,6 @@
 # JAVArestAPISample
 Hello, i am uploading this project to showcase the code quality that is done by us(ME AND PALASH) in an application that we
-developed for a PRODUCT.
+developed.
 
 Pre requistes to read this code : good understanding of core java,Hibernate,restAPI,JAX RS,Call back mechanisms,HQL,RDBMS,Maven.
 
