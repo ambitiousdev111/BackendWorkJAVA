@@ -1,0 +1,79 @@
+package in.cozynest.cozyapis.rest.impl;
+
+import java.util.ArrayList;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+
+import in.cozynest.cozyapis.exception.InternalServerErrorException;
+import in.cozynest.cozyapis.exception.NotAcceptableException;
+import in.cozynest.cozyapis.exception.NotFoundException;
+import in.cozynest.cozyapis.model.Package;
+import in.cozynest.cozyapis.model.PackageItems;
+import in.cozynest.cozyapis.rest.IPackageItemsRest;
+import in.cozynest.cozyapis.service.IPackageItemsService;
+import in.cozynest.cozyapis.service.impl.PackageItemsServiceImpl;
+
+@Path("packageItems")
+@Produces("application/json")
+@Consumes("application/json")
+public class PackageItemsRestImpl implements IPackageItemsRest {
+
+	IPackageItemsService packageItemsService = new PackageItemsServiceImpl();
+
+	@POST
+	@Path("create")
+	public PackageItems create(@QueryParam("name") String name, @QueryParam("pakage") Package pakage) {
+		if (name.equals(""))
+			throw new NotAcceptableException("All feilds required");
+		PackageItems packageItems = new PackageItems();
+		packageItems.setName(name);
+		packageItems.setPakage(pakage);
+
+		return packageItemsService.create(packageItems);
+	}
+
+	@PUT
+	@Path("update")
+	public PackageItems update(@QueryParam("id") int id, @QueryParam("name") String name) {
+
+		PackageItems packageItems = packageItemsService.findById(id);
+		if (packageItems == null)
+
+			throw new NotFoundException("No record found for this id");
+		packageItems.setId(id);
+		packageItems.setName(name);
+		PackageItems updatedPackageItems = packageItemsService.update(packageItems);
+		if (updatedPackageItems == null)
+			throw new InternalServerErrorException("unable to upadate PackageItems");
+
+		return updatedPackageItems;
+	}
+
+	@Path("findall")
+	@GET
+	public ArrayList<PackageItems> findAll() {
+		ArrayList<PackageItems> pakageItems = packageItemsService.findAll();
+		if (pakageItems == null)
+			throw new NotFoundException("No record found");
+
+		return pakageItems;
+
+	}
+
+	@GET
+	@Path("findbyid/{id}")
+	public PackageItems findById(@PathParam("id") int id) {
+		PackageItems packageItems = packageItemsService.findById(id);
+		if (packageItems == null)
+			throw new NotFoundException("No record found for this id");
+		return null;
+	}
+
+}

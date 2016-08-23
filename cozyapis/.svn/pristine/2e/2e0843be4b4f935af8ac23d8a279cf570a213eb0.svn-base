@@ -1,0 +1,183 @@
+package in.cozynest.cozyapis.rest.impl;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+
+import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
+
+import in.cozynest.cozyapis.annotations.AdminPath;
+import in.cozynest.cozyapis.annotations.UserAdminPath;
+import in.cozynest.cozyapis.exception.InternalServerErrorException;
+import in.cozynest.cozyapis.exception.NotAcceptableException;
+import in.cozynest.cozyapis.model.Order;
+import in.cozynest.cozyapis.model.OrderedSubscription;
+import in.cozynest.cozyapis.model.OrderedSubscription.PlanDuration;
+import in.cozynest.cozyapis.model.OrderedSubscription.Shift;
+import in.cozynest.cozyapis.model.OrderedSubscription.Status;
+import in.cozynest.cozyapis.model.User;
+import in.cozynest.cozyapis.rest.IOrderedSubscriptionRest;
+import in.cozynest.cozyapis.service.IOrderedSubscriptionService;
+import in.cozynest.cozyapis.service.impl.OrderServiceImpl;
+import in.cozynest.cozyapis.service.impl.OrderedSubscriptionServiceImpl;
+import in.cozynest.cozyapis.utils.DailyCommingStatusWrapper;
+
+public class OrderedSubscriptionRestImpl implements IOrderedSubscriptionRest {
+
+	IOrderedSubscriptionService orderedSubscriptionService = new OrderedSubscriptionServiceImpl();
+
+	SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+
+	@Override
+	@Path("add")
+	@UserAdminPath
+	public OrderedSubscription create(@QueryParam("startDate") String startDate, @QueryParam("endDate") String endDate,
+			@QueryParam("status") Status status, @QueryParam("orderId") int orderId,
+			@QueryParam("address") String address, @QueryParam("deductFromWallet") String deductFromWallet,
+			@QueryParam("startShift") Shift startShift, @QueryParam("endShift") Shift endShift,
+			@QueryParam("planDuration") PlanDuration planDuration) {
+		if (startDate.equals("") || endDate.equals("") || address.equals(""))
+			throw new NotAcceptableException("All feilds required");
+		Order order = new OrderServiceImpl().findById(orderId);
+		if (order == null)
+			throw new InternalServerErrorException("Unable to add new subscription for this user");
+
+		OrderedSubscription orderedSubscription = new OrderedSubscription();
+		orderedSubscription.setOrder(order);
+		orderedSubscription.setStatus(status);
+		orderedSubscription.setAddress(address);
+		orderedSubscription.setStartShift(startShift);
+		orderedSubscription.setEndShift(endShift);
+		orderedSubscription.setPlanDuration(planDuration);
+		try {
+			Date newEndDate = formatter.parse(endDate);
+			newEndDate = new Date(newEndDate.getYear(), newEndDate.getMonth(), newEndDate.getDate());
+			System.out.println(newEndDate);
+			orderedSubscription.setEndDate(newEndDate);
+			Date newStartDate = formatter.parse(startDate);
+			newStartDate = new Date(newStartDate.getYear(), newStartDate.getMonth(), newStartDate.getDate());
+			orderedSubscription.setStartDate(newStartDate);
+		} catch (ParseException pe) {
+			System.out.println("SubscriptionRestImpl [public Subscription create()] : " + pe);
+			throw new InternalServerErrorException("Invalid endDate/startDate");
+		}
+
+		return orderedSubscriptionService.createNewOrderedSubscription(orderedSubscription, deductFromWallet);
+	}
+
+	@Override
+	@Path("update")
+	@AdminPath
+	public OrderedSubscription update(int id, Status status) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	@Path("findall")
+	public ArrayList<OrderedSubscription> findAll() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	@Path("findbyid/{id}")
+	@UserAdminPath
+	public OrderedSubscription findById(int id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	@Path("findbystatus/{status}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findByStatus(String status) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	@Path("findbystartdate/{startDate}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findByStartDate(String startDate) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	@Path("findbyenddate/{endDate}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findByEndDate(String endDate) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	@Path("findbyplantype/{planType}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findByPlanType(String planType) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	@Path("findbyuserid/{userId}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findByUserId(int userId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	@Path("findbyorderid/{orderId}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findByOrderId(int orderId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	@Path("findbygenerateduserid/{userId}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findByGeneratedUserId(String generatedUserId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	@Path("findbyphone/{phone}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findByPhone(String phone) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	@Path("findtodaysdeliveriesbycurrentdateandcurrentshift/{findTodaysDeliveriesByCurrentDateAndCurrentShift}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findTodaysDeliveriesByCurrentDateAndCurrentShift(String date,
+			String subscriptionShift, String cancelShift) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+  @Path("finddailycommingstatus/{findDailyCommingStatus}")
+	@UserAdminPath
+	public DailyCommingStatusWrapper findDailyCommingStatus(int subscriptionId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	@Path("findbyenddateandendshift/{ findByEndDateAndEndShift}")
+	@UserAdminPath
+	public ArrayList<User> findByEndDateAndEndShift(String endDate, String endShift) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	
+}

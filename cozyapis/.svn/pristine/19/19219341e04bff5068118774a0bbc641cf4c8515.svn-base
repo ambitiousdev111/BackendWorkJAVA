@@ -1,0 +1,73 @@
+package in.cozynest.cozyapis.utils;
+
+import java.util.ArrayList;
+
+import javax.xml.bind.annotation.XmlRootElement;
+
+import in.cozynest.cozyapis.model.Subscription.Shift;
+import in.cozynest.cozyapis.model.Subscription.SubscriptionType;
+
+@XmlRootElement
+public class DailyCommingStatusWrapper {
+
+	private ArrayList<String> cancelledSubscriptiondates;
+	private ArrayList<String> dailyCommingDates;
+	private SubscriptionType subscriptionType;
+	private String currentDate;
+	private Shift currentShift;
+
+	public DailyCommingStatusWrapper(ArrayList<String> cancelledSubscriptiondates,
+			ArrayList<String> dailyCommingDates, SubscriptionType subscriptionType, String currentDate,
+			Shift currentShift) {
+		super();
+		this.cancelledSubscriptiondates = cancelledSubscriptiondates;
+		this.dailyCommingDates = dailyCommingDates;
+		this.subscriptionType = subscriptionType;
+		this.currentDate = currentDate;
+		this.currentShift = currentShift;
+	}
+
+	public DailyCommingStatusWrapper() {
+	}
+
+	public ArrayList<String> getCancelledSubscriptiondates() {
+		return cancelledSubscriptiondates;
+	}
+
+	public void setCancelledSubscriptiondates(ArrayList<String> cancelledSubscriptiondates) {
+		this.cancelledSubscriptiondates = cancelledSubscriptiondates;
+	}
+
+	public ArrayList<String> getDailyCommingDates() {
+		return dailyCommingDates;
+	}
+
+	public void setDailyCommingDates(ArrayList<String> dailyCommingDates) {
+		this.dailyCommingDates = dailyCommingDates;
+	}
+
+	public SubscriptionType getSubscriptionType() {
+		return subscriptionType;
+	}
+
+	public void setSubscriptionType(SubscriptionType subscriptionType) {
+		this.subscriptionType = subscriptionType;
+	}
+
+	public String getCurrentDate() {
+		return currentDate;
+	}
+
+	public void setCurrentDate(String currentDate) {
+		this.currentDate = currentDate;
+	}
+
+	public Shift getCurrentShift() {
+		return currentShift;
+	}
+
+	public void setCurrentShift(Shift currentShift) {
+		this.currentShift = currentShift;
+	}
+
+}

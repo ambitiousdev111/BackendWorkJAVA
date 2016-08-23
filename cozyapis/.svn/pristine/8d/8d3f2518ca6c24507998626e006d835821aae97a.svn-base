@@ -1,0 +1,21 @@
+package in.cozynest.cozyapis.rest;
+
+import java.util.ArrayList;
+
+import in.cozynest.cozyapis.model.Order;
+
+public interface IOrderRest {
+
+	public Order create(int userId, String dateOfOrder, double totalCost);
+
+	public Order update(int id, int userId, double totalCost);
+
+	public Order findById(int id);
+
+	public ArrayList<Order> findByDateOfOrder(String date);
+
+	public ArrayList<Order> findByUserId(int userId);
+	
+	public ArrayList<Order> findByPhone(String phone);
+
+}

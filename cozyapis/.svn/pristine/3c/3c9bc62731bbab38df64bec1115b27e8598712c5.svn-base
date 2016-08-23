@@ -1,0 +1,77 @@
+package in.cozynest.cozyapis.rest.impl;
+
+import java.util.ArrayList;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
+
+import in.cozynest.cozyapis.exception.InternalServerErrorException;
+import in.cozynest.cozyapis.exception.NotAcceptableException;
+import in.cozynest.cozyapis.exception.NotFoundException;
+import in.cozynest.cozyapis.model.UserScope;
+import in.cozynest.cozyapis.model.UserScope.Authority;
+import in.cozynest.cozyapis.model.UserScope.Method;
+import in.cozynest.cozyapis.rest.IUserScopeRest;
+import in.cozynest.cozyapis.service.IUserScopeService;
+import in.cozynest.cozyapis.service.impl.UserScopeServiceImpl;
+
+@Path("userscope")
+public class UserScopeRestImpl implements IUserScopeRest {
+
+	IUserScopeService userScopeService = new UserScopeServiceImpl();
+
+	@Path("create")
+	@POST
+
+	public UserScope create(@QueryParam("authority") Authority authority, @QueryParam("method") Method method,
+			@QueryParam("scope") String scope) {
+
+		if (scope.equals(""))
+			throw new NotAcceptableException("All feilds required");
+		UserScope userScope = new UserScope();
+		userScope.setAuthority(authority);
+		userScope.setMethod(method);
+		userScope.setScope(scope);
+
+		return userScopeService.create(userScope);
+
+	}
+
+	@Path("update")
+	@PUT
+	public UserScope update(@QueryParam("id") int id, @QueryParam("scope") String scope) {
+		UserScope userScope = userScopeService.findById(id);
+		if (userScope == null)
+			throw new NotFoundException("No record found for this id");
+		userScope.setId(id);
+		userScope.setScope(scope);
+		UserScope updatedUserScope = userScopeService.update(userScope);
+		if (updatedUserScope == null)
+			throw new InternalServerErrorException("unable to update UserScope");
+
+		return updatedUserScope;
+	}
+
+	@Path("findall")
+	@GET
+	public ArrayList<UserScope> findAll() {
+		ArrayList<UserScope> userScope = userScopeService.findAll();
+		if(userScope==null)
+			throw new NotFoundException("NO record found");
+		return userScope;
+	}
+
+	@GET
+	@Path("findbyid/{id}")
+	public UserScope findById(int id) {
+		UserScope userScope = userScopeService.findById(id);
+		if(userScope==null)
+			throw new NotFoundException("NO record found for this id");
+		return userScope;
+		
+	}
+
+}

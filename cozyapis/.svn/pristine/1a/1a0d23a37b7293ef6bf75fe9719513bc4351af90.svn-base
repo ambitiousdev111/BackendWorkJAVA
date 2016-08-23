@@ -1,0 +1,63 @@
+package in.cozynest.cozyapis.rest.filter;
+
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Date;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.ext.Provider;
+
+import in.cozynest.cozyapis.annotations.UserAdminPath;
+import in.cozynest.cozyapis.exception.InternalServerErrorException;
+import in.cozynest.cozyapis.exception.UnauthorizedException;
+import in.cozynest.cozyapis.model.Token;
+import in.cozynest.cozyapis.model.User;
+import in.cozynest.cozyapis.model.User.UserType;
+import in.cozynest.cozyapis.security.CryptoAlgo;
+import in.cozynest.cozyapis.service.ITokenService;
+import in.cozynest.cozyapis.service.impl.TokenServiceImpl;
+import in.cozynest.cozyapis.service.impl.UserServiceImpl;
+
+@Provider
+@UserAdminPath
+public class UserAdminPathFilter implements ContainerRequestFilter {
+
+	@Override
+	public void filter(ContainerRequestContext requestContext) throws IOException {
+		String accessToken = requestContext.getHeaderString("Authorization");
+		String authId = requestContext.getHeaderString("AuthId");
+		if(accessToken == null || authId == null)
+			throw new UnauthorizedException("Unauthorized access");
+		ITokenService tokenService = new TokenServiceImpl();
+		Token token = tokenService.findByAccessToken(accessToken);
+		if (token == null)
+			throw new UnauthorizedException("Unauthorized access1");
+		Date expiryDate = token.getExpire();
+		int i = new Date().compareTo(expiryDate);
+		if (i > 0)
+			throw new UnauthorizedException("Unauthorized access token");
+		try {
+			String generatedUserId = new CryptoAlgo().decrypt("kelkarsirjiuserid", authId);
+			User user = new UserServiceImpl().findByGeneratedUserId(generatedUserId);
+			if (user.getId() != token.getUser().getId())
+				throw new UnauthorizedException("Unauthorized access2");
+		} catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException
+				| InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException
+				| IOException e1) {
+			e1.printStackTrace();
+			throw new InternalServerErrorException("Error due to cryptographic algorithm");
+		}
+
+		User user = token.getUser();
+		if (user.getUserType() != UserType.ADMIN && user.getUserType() != UserType.USER)
+			throw new UnauthorizedException("Request forbidden");
+
+	}
+}

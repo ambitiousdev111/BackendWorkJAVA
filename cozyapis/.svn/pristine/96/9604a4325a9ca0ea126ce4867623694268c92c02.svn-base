@@ -1,0 +1,63 @@
+package in.cozynest.cozyapis.dao.impl;
+
+import java.util.ArrayList;
+
+import org.hibernate.Session;
+
+import in.cozynest.cozyapis.dao.IUserScopeDao;
+import in.cozynest.cozyapis.model.UserScope;
+
+public class UserScopeDaoImpl extends GenericDaoImpl<UserScope> implements  IUserScopeDao {
+	
+	Session session;
+	
+	public UserScopeDaoImpl() {
+		super(UserScope.class);
+	}
+	
+	
+	@Override
+	public boolean exists(int pk) {
+		// TODO Auto-generated method stub
+		return super.exists(pk);
+	}
+
+
+
+	@Override
+	public long count() {
+		// TODO Auto-generated method stub
+		return super.count();
+	}
+
+	@Override
+	public UserScope create(UserScope userScope) {
+		// TODO Auto-generated method stub
+		return super.create(userScope);
+	}
+
+	@Override
+	public UserScope update(UserScope userScope) {
+		// TODO Auto-generated method stub
+		return super.update(userScope);
+	}
+
+	@Override
+	public void delete(UserScope pakage) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public ArrayList<UserScope> findAll() {
+		// TODO Auto-generated method stub
+		return super.findAll();
+	}
+
+	@Override
+	public UserScope findById(int id) {
+		// TODO Auto-generated method stub
+		return super.findById(id);
+	}
+
+}

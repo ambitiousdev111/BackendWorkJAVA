@@ -1,0 +1,30 @@
+package in.cozynest.cozyapis.service;
+
+import java.util.ArrayList;
+
+import in.cozynest.cozyapis.model.UserPassword;
+
+public interface IUserPasswordService {
+	
+	
+	public boolean exists(int pk);
+
+	public long count();
+
+	public UserPassword create(UserPassword userPassword);
+
+	public UserPassword update(UserPassword userPassword);
+
+	public void delete(UserPassword userPassword);
+
+	public ArrayList<UserPassword> findAll();
+
+	public UserPassword findById(int id);
+	
+	public UserPassword findByUserId(int userId);
+
+	public UserPassword findByPhone(String phone);
+	
+	public UserPassword findByEmail(String email);
+
+}

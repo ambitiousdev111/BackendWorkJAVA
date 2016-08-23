@@ -1,0 +1,110 @@
+package in.cozynest.cozyapis.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+
+import in.cozynest.cozyapis.dao.IUserDao;
+import in.cozynest.cozyapis.dao.impl.UserDaoImpl;
+import in.cozynest.cozyapis.model.User;
+import in.cozynest.cozyapis.model.UserWallet;
+import in.cozynest.cozyapis.service.IUserService;
+
+public   class UserServiceImpl implements IUserService {
+
+	IUserDao userDao = new UserDaoImpl();
+
+	@Override
+	public boolean exists(int pk) {
+		return userDao.exists(pk);
+	}
+
+	@Override
+	public long count() {
+		return userDao.count();
+	}
+
+	@Override
+	public User create(User user) {
+		user.setGeneratedUserId(generateUserId(user));
+		Date dateOfJoining = new Date();
+		user.setDateOfJoining(dateOfJoining);
+		
+		UserWallet userWallet = new UserWallet();
+		userWallet.setAmount(0);
+		userWallet.setUser(user);
+		UserWallet newUserWallet = new UserWalletServiceImpl().create(userWallet);
+		user=newUserWallet.getUser();
+		return user;
+	}
+
+	@Override
+	public User update(User user) {
+		return userDao.update(user);
+	}
+
+	@Override
+	public void delete(User user) {
+		userDao.delete(user);
+	}
+
+	@Override
+	public ArrayList<User> findAll() {
+		return userDao.findAll();
+	}
+
+	@Override
+	public User findById(int id) {
+		return userDao.findById(id);
+	}
+
+	@Override
+	public User findByPhone(String phone) {
+		return userDao.findByPhone(phone);
+	}
+
+	@Override
+	public User findByGeneratedUserId(String userId) {
+		return userDao.findByGeneratedUserId(userId);
+	}
+
+	@Override
+	public User findByGeneratedUserIdOrPhone(String userId, String phone) {
+		return userDao.findByGeneratedUserIdOrPhone(userId, phone);
+	}
+
+	public User findByPhoneAndWithoutCurrentPK(String phone, int pk) {
+		return userDao.findByPhoneAndWithoutCurrentPK(phone, pk);
+	}
+
+	public User findByGeneratedUserIdAndWithoutCurrentPK(String generatedUserId, int pk) {
+		return userDao.findByGeneratedUserIdAndWithoutCurrentPK(generatedUserId, pk);
+	}
+
+	private String generateUserId(User user) {
+		return user.getName() + userDao.count() + System.currentTimeMillis();
+	}
+	@Override
+    public   User findByPhoneAndPassword(String phone,String password){
+     	return userDao.findByPhoneAndPassword(phone, password);
+    }
+	
+	@Override
+	public User findByGeneratedUserIdAndPassword(String generatedUserId,String password)
+	{
+	return userDao.findByGeneratedUserIdAndPassword(generatedUserId, password);
+	}
+	
+	@Override
+	public User findByEmailAndPassword(String email, String password)
+	{
+	return userDao.findByEmailAndPassword(email, password);
+	}
+	
+	
+	@Override
+	public User findByEmail(String email) {
+		return userDao.findByEmail(email);
+	}
+
+	
+}

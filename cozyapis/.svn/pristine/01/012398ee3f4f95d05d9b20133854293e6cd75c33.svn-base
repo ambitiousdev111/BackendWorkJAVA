@@ -1,0 +1,59 @@
+package in.cozynest.cozyapis.dao.impl;
+
+import java.util.ArrayList;
+
+import org.hibernate.Session;
+
+import in.cozynest.cozyapis.dao.IPackageDao;
+
+
+public class PackageDaoImpl extends GenericDaoImpl<Package>  implements IPackageDao {
+
+	Session session;
+
+	public PackageDaoImpl() {
+		super(Package.class);
+	}
+	@Override
+	public boolean exists(int pk) {
+		// TODO Auto-generated method stub
+		return super.exists(pk);
+	}
+
+	@Override
+	public long count() {
+		// TODO Auto-generated method stub
+		return super.count();
+	}
+
+	@Override
+	public Package create(Package pakage) {
+		// TODO Auto-generated method stub
+		return super.create(pakage);
+	}
+
+	@Override
+	public Package update(Package pakage) {
+		// TODO Auto-generated method stub
+		return super.update(pakage);
+	}
+
+	@Override
+	public void delete(Package pakage) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public ArrayList<Package> findAll() {
+		// TODO Auto-generated method stub
+		return super.findAll();
+	}
+
+	@Override
+	public Package findById(int id) {
+		// TODO Auto-generated method stub
+		return super.findById(id);
+	}
+
+}

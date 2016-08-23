@@ -1,0 +1,44 @@
+package in.cozynest.cozyapis.rest;
+
+import java.util.ArrayList;
+
+import in.cozynest.cozyapis.model.OrderedSubscription;
+import in.cozynest.cozyapis.model.OrderedSubscription.PlanDuration;
+import in.cozynest.cozyapis.model.OrderedSubscription.Shift;
+import in.cozynest.cozyapis.model.OrderedSubscription.Status;
+import in.cozynest.cozyapis.model.User;
+import in.cozynest.cozyapis.utils.DailyCommingStatusWrapper;
+
+public interface IOrderedSubscriptionRest {
+
+	public OrderedSubscription create(String startDate, String endDate, Status status, int orderId, String address, String deductFromWallet, Shift startShift, Shift endShift, PlanDuration planDuration);
+
+	public OrderedSubscription update(int id, Status status);
+
+	public ArrayList<OrderedSubscription> findAll();
+
+	public OrderedSubscription findById(int id);
+
+	public ArrayList<OrderedSubscription> findByStatus(String status);
+
+	public ArrayList<OrderedSubscription> findByStartDate(String startDate);
+
+	public ArrayList<OrderedSubscription> findByEndDate(String endDate);
+
+	public ArrayList<OrderedSubscription> findByPlanType(String planType);
+
+	public ArrayList<OrderedSubscription> findByUserId(int userId);
+
+	public ArrayList<OrderedSubscription> findByOrderId(int orderId);
+	
+	public ArrayList<OrderedSubscription> findByGeneratedUserId(String generatedUserId);
+	
+	public ArrayList<OrderedSubscription> findByPhone(String phone);
+
+	public ArrayList<OrderedSubscription> findTodaysDeliveriesByCurrentDateAndCurrentShift(String date,
+			String subscriptionShift, String cancelShift);
+
+	public DailyCommingStatusWrapper findDailyCommingStatus(int subscriptionId);
+
+	public ArrayList<User> findByEndDateAndEndShift(String endDate, String endShift);
+}

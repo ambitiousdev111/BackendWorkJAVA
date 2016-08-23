@@ -1,0 +1,326 @@
+package in.cozynest.cozyapis.dao.impl;
+
+import java.util.ArrayList;
+
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+
+import in.cozynest.cozyapis.dao.ISubscriptionDao;
+import in.cozynest.cozyapis.exception.InternalServerErrorException;
+import in.cozynest.cozyapis.hibernate.HibernateUtility;
+import in.cozynest.cozyapis.model.User;
+import in.cozynest.cozyapis.model.Subscription;
+
+public class SubscriptionDaoImpl extends GenericDaoImpl<Subscription>implements ISubscriptionDao {
+
+	Session session;
+
+	public SubscriptionDaoImpl() {
+		super(Subscription.class);
+	}
+
+	public long count() {
+		return super.count();
+	}
+
+	public Subscription create(Subscription subscription) {
+		return super.create(subscription);
+	}
+
+	public Subscription update(Subscription subscription) {
+		return super.update(subscription);
+	}
+
+	public void delete(Subscription subscription) {
+		super.delete(subscription);
+	}
+
+	public ArrayList<Subscription> findAll() {
+		return super.findAll();
+	}
+
+	public Subscription findById(int id) {
+		return super.findById(id);
+	}
+
+	public ArrayList<Subscription> findByStatus(String status) {
+		ArrayList<Subscription> subscriptions = new ArrayList<Subscription>();
+		try {
+			session = HibernateUtility.getSessionFactory().openSession();
+			session.beginTransaction();
+			subscriptions = (ArrayList<Subscription>) session.getNamedQuery("Subscription.findByStatus")
+					.setString("status", status).list();
+			session.getTransaction().commit();
+		} catch (HibernateException he) {
+			System.out
+					.println("SubscriptionDaoImpl [public ArrayList<Subscription> findByStatus(String status)] :" + he);
+			throw new InternalServerErrorException(
+					"Unable to find subscriptions by status due to hibernate exception.");
+		} catch (Exception e) {
+			System.out
+					.println("SubscriptionDaoImpl [public ArrayList<Subscription> findByStatus(String status)] :" + e);
+			throw new InternalServerErrorException("Unable to find subscriptions by status due to unknown exception.");
+		} finally {
+			if (session != null)
+				session.close();
+		}
+		return subscriptions;
+	}
+
+	public ArrayList<Subscription> findBySubscriptionShift(String subscriptionType) {
+		ArrayList<Subscription> subscriptions = new ArrayList<Subscription>();
+		try {
+			session = HibernateUtility.getSessionFactory().openSession();
+			session.beginTransaction();
+			subscriptions = (ArrayList<Subscription>) session.getNamedQuery("Subscription.findBySubscriptionShift")
+					.setString("subscriptionType", subscriptionType).list();
+			session.getTransaction().commit();
+		} catch (HibernateException he) {
+			System.out
+					.println("SubscriptionDaoImpl [public ArrayList<Subscription> findByStatus(String status)] :" + he);
+			throw new InternalServerErrorException(
+					"Unable to find subscriptions by subscriptionType due to hibernate exception.");
+		} catch (Exception e) {
+			System.out
+					.println("SubscriptionDaoImpl [public ArrayList<Subscription> findByStatus(String status)] :" + e);
+			throw new InternalServerErrorException(
+					"Unable to find subscriptions by subscriptionType due to unknown exception.");
+		} finally {
+			if (session != null)
+				session.close();
+		}
+		return subscriptions;
+	}
+
+	public ArrayList<Subscription> findByStartDate(String startDate) {
+		ArrayList<Subscription> subscriptions = new ArrayList<Subscription>();
+		try {
+			session = HibernateUtility.getSessionFactory().openSession();
+			session.beginTransaction();
+			subscriptions = (ArrayList<Subscription>) session.getNamedQuery("Subscription.findByStartDate")
+					.setString("startDate", startDate).list();
+			session.getTransaction().commit();
+		} catch (HibernateException he) {
+			System.out.println(
+					"SubscriptionDaoImpl [public ArrayList<Subscription> findByStartDate(String startDate)] :" + he);
+			throw new InternalServerErrorException(
+					"Unable to find subscriptions by start date due to hibernate exception.");
+		} catch (Exception e) {
+			System.out.println(
+					"SubscriptionDaoImpl [public ArrayList<Subscription> findByStartDate(String startDate)] :" + e);
+			throw new InternalServerErrorException(
+					"Unable to find subscriptions by start date due to unknown exception.");
+		} finally {
+			if (session != null)
+				session.close();
+		}
+		return subscriptions;
+	}
+
+	public ArrayList<Subscription> findByEndDate(String endDate) {
+		ArrayList<Subscription> subscriptions = new ArrayList<Subscription>();
+		try {
+			session = HibernateUtility.getSessionFactory().openSession();
+			session.beginTransaction();
+			subscriptions = (ArrayList<Subscription>) session.getNamedQuery("Subscription.findByEndDate")
+					.setString("endDate", endDate).list();
+			session.getTransaction().commit();
+		} catch (HibernateException he) {
+			System.out.println(
+					"SubscriptionDaoImpl [public ArrayList<Subscription> findByEndDate(String endDate)] :" + he);
+			throw new InternalServerErrorException(
+					"Unable to find subscriptions by end date due to hibernate exception.");
+		} catch (Exception e) {
+			System.out.println(
+					"SubscriptionDaoImpl [public ArrayList<Subscription> findByEndDate(String endDate)] :" + e);
+			throw new InternalServerErrorException(
+					"Unable to find subscriptions by end date due to unknown exception.");
+		} finally {
+			if (session != null)
+				session.close();
+		}
+		return subscriptions;
+	}
+
+	public ArrayList<Subscription> findByAddon(String addon) {
+		ArrayList<Subscription> subscriptions = new ArrayList<Subscription>();
+		try {
+			session = HibernateUtility.getSessionFactory().openSession();
+			session.beginTransaction();
+			subscriptions = (ArrayList<Subscription>) session.getNamedQuery("Subscription.findByAddon")
+					.setString("addon", addon).list();
+			session.getTransaction().commit();
+		} catch (HibernateException he) {
+			System.out.println("SubscriptionDaoImpl [public ArrayList<Subscription> findByAddon(String addon)] :" + he);
+			throw new InternalServerErrorException("Unable to find subscriptions by addon due to hibernate exception.");
+		} catch (Exception e) {
+			System.out.println("SubscriptionDaoImpl [public ArrayList<Subscription> findByAddon(String addon)] :" + e);
+			throw new InternalServerErrorException("Unable to find subscriptions by addon due to unknown exception.");
+		} finally {
+			if (session != null)
+				session.close();
+		}
+		return subscriptions;
+	}
+
+	public ArrayList<Subscription> findByUserId(int userId) {
+		ArrayList<Subscription> subscriptions = new ArrayList<Subscription>();
+		try {
+			session = HibernateUtility.getSessionFactory().openSession();
+			session.beginTransaction();
+			subscriptions = (ArrayList<Subscription>) session.getNamedQuery("Subscription.findByUserId")
+					.setInteger("userId", userId).list();
+			session.getTransaction().commit();
+		} catch (HibernateException he) {
+			System.out.println(
+					"SubscriptionDaoImpl [public ArrayList<Subscription> findByUserId(int userId)] :" + he);
+			throw new InternalServerErrorException(
+					"Unable to find subscriptions by user id due to hibernate exception.");
+		} catch (Exception e) {
+			System.out.println(
+					"SubscriptionDaoImpl [public ArrayList<Subscription> findByUserId(int userId)] :" + e);
+			throw new InternalServerErrorException(
+					"Unable to find subscriptions by user id due to unknown exception.");
+		} finally {
+			if (session != null)
+				session.close();
+		}
+		return subscriptions;
+	}
+
+	public ArrayList<Subscription> findByOrderId(int orderId) {
+		ArrayList<Subscription> subscriptions = new ArrayList<Subscription>();
+		try {
+			session = HibernateUtility.getSessionFactory().openSession();
+			session.beginTransaction();
+			subscriptions = (ArrayList<Subscription>) session.getNamedQuery("Subscription.findByOrderId")
+					.setInteger("orderId", orderId).list();
+			session.getTransaction().commit();
+		} catch (HibernateException he) {
+			System.out
+					.println("SubscriptionDaoImpl [public ArrayList<Subscription> findByorderId(int orderId)] :" + he);
+			throw new InternalServerErrorException(
+					"Unable to find subscriptions by order id due to hibernate exception.");
+		} catch (Exception e) {
+			System.out.println("SubscriptionDaoImpl [public ArrayList<Subscription> findByOrderId(int orderId)] :" + e);
+			throw new InternalServerErrorException(
+					"Unable to find subscriptions by order id due to unknown exception.");
+		} finally {
+			if (session != null)
+				session.close();
+		}
+		return subscriptions;
+	}
+
+	@Override
+	public ArrayList<Subscription> findTodaysDeliveriesByCurrentDateAndCurrentShift(String date,
+			String subscriptionType, String cancelShift) {
+		ArrayList<Subscription> todaysDeliverysWrapper = new ArrayList<Subscription>();
+		try {
+			session = HibernateUtility.getSessionFactory().openSession();
+			session.beginTransaction();
+			todaysDeliverysWrapper = (ArrayList<Subscription>) session
+					.getNamedQuery("Subscription.findTodaysDeliveryByCurrentDateAndCurrentShift")
+					.setString("date", date).setString("shift", subscriptionType).setString("cancelShift", cancelShift)
+					.list();
+			session.getTransaction().commit();
+		} catch (HibernateException he) {
+			System.out.println(
+					"SubscriptionDaoImpl [public ArrayList<TodaysDeliveryWrapper> findTodaysDeliveriesByCurrentDateAndCurrentShift(String date,String subscriptionType)] :"
+							+ he);
+			throw new InternalServerErrorException(
+					"Unable to find today's deliveries by date and subscription shift due to hibernate exception.");
+		} catch (Exception e) {
+			System.out.println(
+					"SubscriptionDaoImpl [public ArrayList<TodaysDeliveryWrapper> findTodaysDeliveriesByCurrentDateAndCurrentShift(String date,String subscriptionType)] :"
+							+ e);
+			throw new InternalServerErrorException(
+					"Unable to find todya's deliveries by date and subscription shift due to unknown exception.");
+		} finally {
+			if (session != null)
+				session.close();
+		}
+		return todaysDeliverysWrapper;
+	}
+
+	public ArrayList<User> findByEndDateAndEndShift(String endDate, String endShift) {
+		ArrayList<User> users = new ArrayList<User>();
+		try {
+			session = HibernateUtility.getSessionFactory().openSession();
+			session.beginTransaction();
+			users = (ArrayList<User>) session.getNamedQuery("Subscription.findUsersByEndDateAndEndShift")
+					.setString("endShift", endShift).setString("endDate", endDate).list();
+			session.getTransaction().commit();
+		} catch (HibernateException he) {
+			System.out.println(
+					"SubscriptionDaoImpl [public ArrayList<User> findByEndDateAndEndShift(String endDate, String endShift)] :"
+							+ he);
+			throw new InternalServerErrorException(
+					"Unable to find today's deliveries by date and subscription shift due to hibernate exception.");
+		} catch (Exception e) {
+			System.out.println(
+					"SubscriptionDaoImpl [public ArrayList<User> findByEndDateAndEndShift(String endDate, String endShift)] :"
+							+ e);
+			throw new InternalServerErrorException(
+					"Unable to find todya's deliveries by date and subscription shift due to unknown exception.");
+		} finally {
+			if (session != null)
+				session.close();
+		}
+		return users;
+	}
+
+	@Override
+	public ArrayList<Subscription> findByGeneratedUserId(String generatedUserId) {
+		ArrayList<Subscription> subscriptions = new ArrayList<Subscription>();
+		try {
+			session = HibernateUtility.getSessionFactory().openSession();
+			session.beginTransaction();
+			subscriptions = (ArrayList<Subscription>) session.getNamedQuery("Subscription.findByGeneratedUserId")
+					.setString("generatedUserId", generatedUserId).list();
+			session.getTransaction().commit();
+		} catch (HibernateException he) {
+			System.out.println(
+					"SubscriptionDaoImpl [public ArrayList<Subscription> findByUserId(int userId)] :" + he);
+			throw new InternalServerErrorException(
+					"Unable to find subscriptions by user id due to hibernate exception.");
+		} catch (Exception e) {
+			System.out.println(
+					"SubscriptionDaoImpl [public ArrayList<Subscription> findByUserId(int userId)] :" + e);
+			throw new InternalServerErrorException(
+					"Unable to find subscriptions by user id due to unknown exception.");
+		} finally {
+			if (session != null)
+				session.close();
+		}
+		return subscriptions;
+	}
+	
+	@Override
+	public ArrayList<Subscription> findByPhone(String phone) {
+		ArrayList<Subscription> subscriptions = new ArrayList<Subscription>();
+		try {
+			session = HibernateUtility.getSessionFactory().openSession();
+			session.beginTransaction();
+			subscriptions = (ArrayList<Subscription>) session.getNamedQuery("Subscription.findByPhone")
+					.setString("phone", phone).list();
+			session.getTransaction().commit();
+		} catch (HibernateException he) {
+			System.out.println(
+					"SubscriptionDaoImpl [public ArrayList<Subscription> findByPhone(int userId)] :" + he);
+			throw new InternalServerErrorException(
+					"Unable to find subscriptions by phone due to hibernate exception.");
+		} catch (Exception e) {
+			System.out.println(
+					"SubscriptionDaoImpl [public ArrayList<Subscription> findByPhone(int userId)] :" + e);
+			throw new InternalServerErrorException(
+					"Unable to find subscriptions by phone due to unknown exception.");
+		} finally {
+			if (session != null)
+				session.close();
+		}
+		return subscriptions;
+	}
+
+
+}

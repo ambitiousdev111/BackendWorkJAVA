@@ -1,0 +1,81 @@
+package in.cozynest.cozyapis.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlRootElement;
+
+
+
+@Entity
+@Table(name = "subscription_plan")
+@XmlRootElement
+public class SubscriptionPlan implements java.io.Serializable {
+	
+	private static final long serialVersionUID = 3731962720277192052L;
+
+	@Id @GeneratedValue (strategy=GenerationType.IDENTITY)
+	private int id;
+	
+	@Column(name = "duration", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private PlanDuration planDuration;
+	
+	@Column(name = "package_id", nullable = false)
+	private Package pakage;
+	
+	@Column(name = "plan_type", nullable = false)
+	private PlanType planType;
+
+	public enum PlanType {
+		BREAKFAST, LUNCH, DINNER, LUNCHDINNER, BREAKFASTLUNCHDINNER
+	}
+	
+	public enum PlanDuration {
+		MONTHLY, WEEKLY
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public PlanDuration getPlanDuration() {
+		return planDuration;
+	}
+
+	public void setPlanDuration(PlanDuration planDuration) {
+		this.planDuration = planDuration;
+	}
+
+	public Package getPakage() {
+		return pakage;
+	}
+
+	public void setPakage(Package pakage) {
+		this.pakage = pakage;
+	}
+
+	public PlanType getPlanType() {
+		return planType;
+	}
+
+	public void setPlanType(PlanType planType) {
+		this.planType = planType;
+	}
+
+	@Override
+	public String toString() {
+		return "SubscriptionPlanDao [id=" + id + ", planDuration=" + planDuration + ", pakage=" + pakage + ", planType="
+				+ planType + "]";
+	}
+	
+}

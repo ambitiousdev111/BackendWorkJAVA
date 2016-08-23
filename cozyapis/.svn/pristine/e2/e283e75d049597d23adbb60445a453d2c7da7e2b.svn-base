@@ -1,0 +1,93 @@
+package in.cozynest.cozyapis.rest.filter;
+
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.List;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
+import javax.ws.rs.ext.Provider;
+
+import in.cozynest.cozyapis.exception.InternalServerErrorException;
+import in.cozynest.cozyapis.exception.UnauthorizedException;
+import in.cozynest.cozyapis.model.IAuthorization;
+import in.cozynest.cozyapis.model.User;
+import in.cozynest.cozyapis.security.CryptoAlgo;
+import in.cozynest.cozyapis.service.impl.UserServiceImpl;
+
+/**
+ * Allow the system to serve xhr level 2 from all cross domain site
+ */
+@Provider
+public class CrossDomainFilter implements ContainerResponseFilter {
+	/**
+	 * Add the cross domain data to the output if needed
+	 * 
+	 * @param creq
+	 *            The container request (input)
+	 * @param cres
+	 *            The container request (output)
+	 * @return The output request with cross domain if needed
+	 */
+	@Override
+	public void filter(ContainerRequestContext creq, ContainerResponseContext cres) {
+		cres.getHeaders().add("Access-Control-Allow-Origin", "*");
+		cres.getHeaders().add("Access-Control-Allow-Headers",
+				"origin, accept, authorization,X-Requested-With, Content-Type, X-Codingpedia");
+		cres.getHeaders().add("Access-Control-Allow-Credentials", "true");
+		cres.getHeaders().add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD");
+		cres.getHeaders().add("Access-Control-Max-Age", "1209600");
+		String generatedUserId = null;
+		User u = null;
+		String authId = creq.getHeaderString("AuthId");
+		if (authId != null) {
+			try {
+				generatedUserId = new CryptoAlgo().decrypt("kelkarsirjiuserid", authId);
+				u = new UserServiceImpl().findByGeneratedUserId(generatedUserId);
+			} catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException
+					| InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException | IOException
+					| NullPointerException e1) {
+				e1.printStackTrace();
+				if (u == null)
+					return;
+			}
+
+			if (!u.getUserTypeString().equals("ADMIN")) {
+
+				try {
+					IAuthorization user = (IAuthorization) cres.getEntity();
+
+					if (!u.getUserTypeString().equals("ADMIN") && u != null) {
+						if (!generatedUserId.equals(user.getGeneratedUserId()))
+							throw new UnauthorizedException("Forbidden request");
+					}
+				} catch (ClassCastException e) {
+					if (cres.getStatus() == 200) {
+						try {
+							List<IAuthorization> users = (List<IAuthorization>) cres.getEntity();
+							boolean found = false;
+							for (int i = 0; i < users.size(); i++) {
+								generatedUserId = users.get(i).getGeneratedUserId();
+								if (!generatedUserId.equals(generatedUserId)) {
+									found = true;
+									break;
+								}
+							}
+							if (found)
+								throw new UnauthorizedException("Request forbidden");
+						} catch (ClassCastException cce) {
+						}
+
+					}
+				}
+			}
+		}
+	}
+}

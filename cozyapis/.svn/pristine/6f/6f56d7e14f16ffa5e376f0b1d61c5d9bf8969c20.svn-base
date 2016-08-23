@@ -1,0 +1,58 @@
+package in.cozynest.cozyapis.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlRootElement;
+
+@NamedQueries({ 
+	@NamedQuery(name = "UserPassword.findByPhone", query = "select up from UserPassword up join up.user u where u.phone=:phone"),
+    @NamedQuery(name = "UserPassword.findByEmail", query="select up from UserPassword up join up.user u where u.email=:email"),
+    @NamedQuery(name = "UserPassword.findByUserId",query="select up from UserPassword up join up.user u where u.id=:userId")
+})
+
+@Entity
+@Table(name="user_password")
+@XmlRootElement
+public class UserPassword {
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name="id", nullable=false)
+	private int id;
+	@Column(name="password", nullable=false)
+	private String password;
+	@OneToOne
+	@JoinColumn(name="user_id", nullable=false)
+	private User user;
+	public UserPassword() {
+		super();
+	}
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+	public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	public User getUser() {
+		return user;
+	}
+	public void setUser(User user) {
+		this.user = user;
+	}
+	
+
+}

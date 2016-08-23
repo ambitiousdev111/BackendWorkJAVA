@@ -1,0 +1,186 @@
+package in.cozynest.cozyapis.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+
+import in.cozynest.cozyapis.dao.IOrderedSubscriptionDao;
+import in.cozynest.cozyapis.dao.impl.OrderedSubscriptionDaoImpl;
+import in.cozynest.cozyapis.exception.InternalServerErrorException;
+import in.cozynest.cozyapis.model.OrderedSubscription;
+import in.cozynest.cozyapis.model.Subscription;
+import in.cozynest.cozyapis.model.Transaction;
+import in.cozynest.cozyapis.model.User;
+import in.cozynest.cozyapis.model.UserWallet;
+import in.cozynest.cozyapis.model.Transaction.PaymentType;
+import in.cozynest.cozyapis.model.Transaction.TransactionType;
+import in.cozynest.cozyapis.service.IOrderedSubscriptionService;
+
+public class OrderedSubscriptionServiceImpl implements IOrderedSubscriptionService {
+
+	IOrderedSubscriptionDao orderedSubscriptionDao = new OrderedSubscriptionDaoImpl();
+	
+	@Override
+	public boolean exists(int pk) {
+		return orderedSubscriptionDao.exists(pk);
+	}
+
+	@Override
+	public long count() {
+		return orderedSubscriptionDao.count();
+	}
+
+	@Override
+	public OrderedSubscription create(OrderedSubscription orderedSubscription) {
+		return orderedSubscriptionDao.create(orderedSubscription);
+	}
+
+	@Override
+	public OrderedSubscription createNewOrderedSubscription(OrderedSubscription orderedSubscription,
+			String deductFromWallet) {
+		OrderedSubscription newOrderedSubscription = orderedSubscriptionDao.create(orderedSubscription);
+		
+		UserWallet userWallet = new UserWalletServiceImpl()
+				.findByUserId(orderedSubscription.getOrder().getUser().getId());
+
+		if (deductFromWallet.toLowerCase().equals("on")) {
+			double deductedAmount = 0;
+			if (userWallet.getAmount() <= 0)
+				throw new InternalServerErrorException("Cannot deduct any amount from wallet as wallet amount is zero");
+			if (userWallet.getAmount() < orderedSubscription.getPakage().getCost()) {
+				userWallet.setAmount(0);
+				deductedAmount = userWallet.getAmount();
+				userWallet = new UserWalletServiceImpl().update(userWallet);
+				Transaction transaction = new Transaction();
+				transaction.setAmount(deductedAmount);
+				transaction.setDate(new Date());
+				transaction.setOrder(newOrderedSubscription.getOrder());
+				transaction.setPaymentType(PaymentType.WALLET);
+				transaction.setTransactionType(TransactionType.CREDIT);
+				transaction.setRemark("Transaction for orderId : " + newOrderedSubscription.getOrder().getId());
+
+				if ((new TransactionServiceImpl().create(transaction)) == null)
+					throw new InternalServerErrorException("Unable to add transaction for subscription id :"
+							+ newOrderedSubscription.getId() + " and orderId :" + newOrderedSubscription.getOrder().getId());
+
+			} else {
+				userWallet.setAmount(userWallet.getAmount() - orderedSubscription.getPakage().getCost());
+				deductedAmount = userWallet.getAmount() - orderedSubscription.getPakage().getCost();
+				userWallet = new UserWalletServiceImpl().update(userWallet);
+
+				Transaction transaction = new Transaction();
+				transaction.setAmount(deductedAmount);
+				transaction.setDate(new Date());
+				transaction.setOrder(newOrderedSubscription.getOrder());
+				transaction.setPaymentType(PaymentType.WALLET);
+				transaction.setTransactionType(TransactionType.CREDIT);
+				transaction.setRemark("Transaction for orderId : " + newOrderedSubscription.getOrder().getId());
+
+				if ((new TransactionServiceImpl().create(transaction)) == null)
+					throw new InternalServerErrorException("Unable to add transaction for subscription id :"
+							+ newOrderedSubscription.getId() + " and orderId :" + newOrderedSubscription.getOrder().getId());
+
+				Transaction transaction1 = new Transaction();
+				transaction1.setAmount(orderedSubscription.getPakage().getCost() - deductedAmount);
+				transaction1.setDate(new Date());
+				transaction1.setOrder(newOrderedSubscription.getOrder());
+				transaction1.setPaymentType(PaymentType.COD);
+				transaction1.setTransactionType(TransactionType.CREDIT);
+				transaction1.setRemark("Transaction for orderId : " + newOrderedSubscription.getOrder().getId());
+
+				if ((new TransactionServiceImpl().create(transaction1)) == null)
+					throw new InternalServerErrorException("Unable to add transaction for subscription id :"
+							+ newOrderedSubscription.getId() + " and orderId :" + newOrderedSubscription.getOrder().getId());
+
+			}
+			if (userWallet == null)
+				throw new InternalServerErrorException("Unable to deduct amount from wallet");
+
+		} else {
+			Transaction transaction = new Transaction();
+			transaction.setAmount(newOrderedSubscription.getPakage().getCost());
+			transaction.setDate(new Date());
+			transaction.setOrder(newOrderedSubscription.getOrder());
+			transaction.setPaymentType(PaymentType.COD);
+			transaction.setTransactionType(TransactionType.CREDIT);
+			transaction.setRemark("Transaction for orderId : " + newOrderedSubscription.getOrder().getId());
+
+			if ((new TransactionServiceImpl().create(transaction)) == null)
+				throw new InternalServerErrorException("Unable to add transaction for subscription id :"
+						+ newOrderedSubscription.getId() + " and orderId :" + newOrderedSubscription.getOrder().getId());
+		}
+		return newOrderedSubscription;
+	}
+
+	@Override
+	public OrderedSubscription update(OrderedSubscription orderedSubscription) {
+		return orderedSubscriptionDao.update(orderedSubscription);
+	}
+
+	@Override
+	public void delete(OrderedSubscription orderedSubscription) {
+		orderedSubscriptionDao.delete(orderedSubscription);
+		
+	}
+
+	@Override
+	public ArrayList<OrderedSubscription> findAll() {
+		return orderedSubscriptionDao.findAll();
+	}
+
+	@Override
+	public OrderedSubscription findById(int id) {
+		return orderedSubscriptionDao.findById(id);
+	}
+
+	@Override
+	public ArrayList<OrderedSubscription> findByStatus(String status) {
+		return orderedSubscriptionDao.findByStatus(status);
+	}
+
+	@Override
+	public ArrayList<OrderedSubscription> findByStartDate(String startDate) {
+		return orderedSubscriptionDao.findByStartDate(startDate);
+	}
+
+	@Override
+	public ArrayList<OrderedSubscription> findByEndDate(String endDate) {
+		return orderedSubscriptionDao.findByEndDate(endDate);
+	}
+
+	@Override
+	public ArrayList<OrderedSubscription> findByPlanType(String planType) {
+		return orderedSubscriptionDao.findByPlanType(planType);
+	}
+
+	@Override
+	public ArrayList<OrderedSubscription> findByUserId(int userId) {
+		return orderedSubscriptionDao.findByUserId(userId);
+	}
+
+	@Override
+	public ArrayList<OrderedSubscription> findByGeneratedUserId(String generatedUserId) {
+		return orderedSubscriptionDao.findByGeneratedUserId(generatedUserId);
+	}
+
+	@Override
+	public ArrayList<OrderedSubscription> findByPhone(String phone) {
+		return orderedSubscriptionDao.findByPhone(phone);
+	}
+
+	@Override
+	public ArrayList<OrderedSubscription> findByOrderId(int orderId) {
+		return orderedSubscriptionDao.findByOrderId(orderId);
+	}
+
+	@Override
+	public ArrayList<OrderedSubscription> findTodaysDeliveriesByCurrentDateAndCurrentShift(String date,
+			String orderedSubscriptionShift, String cancelShift) {
+		return orderedSubscriptionDao.findTodaysDeliveriesByCurrentDateAndCurrentShift(date, orderedSubscriptionShift, cancelShift);
+	}
+
+	@Override
+	public ArrayList<User> findByEndDateAndEndShift(String endDate, String endShift) {
+		return orderedSubscriptionDao.findByEndDateAndEndShift(endDate, endShift);
+	}
+
+}

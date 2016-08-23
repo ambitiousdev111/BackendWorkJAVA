@@ -1,0 +1,156 @@
+package in.cozynest.cozyapis.model;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import in.cozynest.cozyapis.model.OrderedSubscription.Shift;
+
+//@NamedQueries({
+//		@NamedQuery(name = "Subscription.findByStatus", query = "select s from Subscription s where s.status=:status"),
+//		@NamedQuery(name = "Subscription.findByStartDate", query = "select s from Subscription s where s.startDate=:startDate"),
+//		@NamedQuery(name = "Subscription.findByEndDate", query = "select s from Subscription s where s.endDate=:endDate"),
+//		@NamedQuery(name = "Subscription.findByOrderId", query = "select s from Subscription s Join s.order o where o.id=:orderId"),
+//		@NamedQuery(name = "Subscription.findByUserId", query = "select s from Subscription s Join s.order o Join o.user c where c.id=:userId"),
+//		@NamedQuery(name = "Subscription.findByGeneratedUserId", query = "select s from Subscription s Join s.order o Join o.user c where c.generatedUserId=:generatedUserId"),
+//		@NamedQuery(name = "Subscription.findByPhone", query = "select s from Subscription s Join s.order o Join o.user c where c.phone=:phone"),
+//		@NamedQuery(name = "Subscription.findTodaysDeliveryByCurrentDateAndCurrentShift", query = "select s from Subscription s Join s.order o Join o.user c where s.status='ACTIVE' and (s.subscriptionType=:shift or s.subscriptionType='LUNCHDINNER') and s not in (select csd.subscription.id from CancelledSubscriptionDate csd where csd.cancelDate=:date and csd.cancelShift=:cancelShift)"),
+//		@NamedQuery(name = "Subscription.findUsersByEndDateAndEndShift", query = "select c from Subscription s Join s.order o Join o.user c where s.endDate=:endDate and s.endShift=:endShift") })
+
+@Entity
+@Table(name = "subscription")
+@XmlRootElement
+public class Subscription implements java.io.Serializable {
+
+	private static final long serialVersionUID = 7036106481573535547L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int id;
+
+	@OneToOne
+	@JoinColumn(name = "order_id")
+	private Order order;
+	
+	@Enumerated(EnumType.STRING)
+	@Column(name = "status", nullable = false)
+	private Status status;
+
+	@Temporal(TemporalType.DATE)
+	@Column(name = "start_date", nullable = false)
+	private Date startDate;
+
+	@Temporal(TemporalType.DATE)
+	@Column(name = "end_date", nullable = false)
+	private Date endDate;
+
+	@Column(name = "address", nullable = false)
+	private String address;
+
+	@Column(name = "start_shift", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private Shift startShift;
+
+	@Column(name = "end_shift", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private Shift endShift;
+	
+	@JoinColumn(name = "subscription_plan")
+	@ManyToOne
+	private SubscriptionPlan subscriptionPlan;
+	
+	public enum Status {
+		PENDING, ACTIVE, COMPLETE
+	}
+
+	public Subscription() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public Order getOrder() {
+		return order;
+	}
+
+	public void setOrder(Order order) {
+		this.order = order;
+	}
+
+	public Status getStatus() {
+		return status;
+	}
+
+	public void setStatus(Status status) {
+		this.status = status;
+	}
+
+	public Date getStartDate() {
+		return startDate;
+	}
+
+	public void setStartDate(Date startDate) {
+		this.startDate = startDate;
+	}
+
+	public Date getEndDate() {
+		return endDate;
+	}
+
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
+	}
+
+	public String getAddress() {
+		return address;
+	}
+
+	public void setAddress(String address) {
+		this.address = address;
+	}
+
+	public Shift getStartShift() {
+		return startShift;
+	}
+
+	public void setStartShift(Shift startShift) {
+		this.startShift = startShift;
+	}
+
+	public Shift getEndShift() {
+		return endShift;
+	}
+
+	public void setEndShift(Shift endShift) {
+		this.endShift = endShift;
+	}
+
+	public SubscriptionPlan getSubscriptionPlan() {
+		return subscriptionPlan;
+	}
+
+	public void setSubscriptionPlan(SubscriptionPlan subscriptionPlan) {
+		this.subscriptionPlan = subscriptionPlan;
+	}
+	
+}

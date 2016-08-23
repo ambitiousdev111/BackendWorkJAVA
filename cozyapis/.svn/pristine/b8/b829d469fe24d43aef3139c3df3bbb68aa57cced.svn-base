@@ -1,0 +1,112 @@
+package in.cozynest.cozyapis.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlRootElement;
+
+@NamedQueries({
+		@NamedQuery(name = "Order.findByOrderDate", query = "select o from Order o where o.dateOfOrder=:dateOfOrder"),
+		@NamedQuery(name = "Order.findByUserId", query = "select o from Order o Join o.user c where c.id=:userId"),
+		@NamedQuery(name = "Order.findByGeneratedUserId", query = "select o from Order o Join o.user c where c.generatedUserId=:generatedUserId"),
+		@NamedQuery(name = "Order.findByPhone", query = "select o from Order o Join o.user c where c.phone = :phone") })
+@Entity
+@Table(name = "orders")
+@XmlRootElement
+public class Order implements Serializable,IAuthorization {
+
+	private static final long serialVersionUID = 1L;
+
+	public int getId() {
+		return id;
+	}
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int id;
+
+	@ManyToOne
+	@JoinColumn(name = "user_id")
+	private User user;
+
+	@Column(name = "order_type", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private OrderType orderType;
+
+	@Column(name = "total_cost", nullable = false)
+	private Double totalCost;
+
+	@Column(name = "date_of_order", nullable = false)
+	private java.util.Date dateOfOrder;
+
+	public enum OrderType {
+		TIFFIN
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public OrderType getOrderType() {
+		return orderType;
+	}
+
+	public void setOrderType(OrderType orderType) {
+		this.orderType = orderType;
+	}
+
+	public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
+
+	public Double getTotalCost() {
+		return totalCost;
+	}
+
+	public void setTotalCost(Double totalCost) {
+		this.totalCost = totalCost;
+	}
+
+	public java.util.Date getDateOfOrder() {
+		return dateOfOrder;
+	}
+
+	public void setDateOfOrder(java.util.Date dateOfOrder) {
+		this.dateOfOrder = dateOfOrder;
+	}
+	
+	public String getGeneratedUserId() {
+		return user.getGeneratedUserId();
+	}
+
+	@Override
+	public String toString() {
+		return "Order [id=" + id + ", user=" + user + ", orderType=" + orderType + ", totalCost=" + totalCost
+				+ ", dateOfOrder=" + dateOfOrder + "]";
+	}
+
+	@Override
+	public String getUserTypeString() {
+		return user.getUserTypeString();
+	}
+
+}

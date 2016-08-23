@@ -1,0 +1,70 @@
+package in.cozynest.cozyapis.rest.filter;
+
+import java.io.IOException;
+import java.util.Date;
+
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.PreMatching;
+import javax.ws.rs.ext.Provider;
+
+import in.cozynest.cozyapis.exception.UnauthorizedException;
+import in.cozynest.cozyapis.model.Token;
+import in.cozynest.cozyapis.model.User;
+import in.cozynest.cozyapis.model.User.UserType;
+import in.cozynest.cozyapis.model.UserScope;
+import in.cozynest.cozyapis.model.UserScope.Authority;
+import in.cozynest.cozyapis.model.UserScope.Method;
+import in.cozynest.cozyapis.service.ITokenService;
+import in.cozynest.cozyapis.service.IUserScopeService;
+import in.cozynest.cozyapis.service.impl.TokenServiceImpl;
+import in.cozynest.cozyapis.service.impl.UserScopeServiceImpl;
+
+@Provider
+@PreMatching
+public class TokenizedPathFilter implements ContainerRequestFilter {
+
+	@Override
+	public void filter(ContainerRequestContext requestContext) throws IOException {
+		String scope = requestContext.getUriInfo().getPath();
+		String method=requestContext.getMethod();
+		
+		IUserScopeService UserScopeService = new UserScopeServiceImpl();
+		UserScope userScope = UserScopeService.findByScope(scope);
+		
+		if(userScope==null)
+			throw new UnauthorizedException("Unauthorized access");
+		
+		String scopeMethod = userScope.getMethod().name();
+		if(!method.equals(scopeMethod))
+			throw new UnauthorizedException("Method not allowed");
+		
+		
+		
+		if(userScope.getAuthority() == Authority.ALL)
+			return;
+		
+		String accessToken = requestContext.getHeaderString("Authorization");
+		ITokenService tokenService = new TokenServiceImpl();
+		Token token = tokenService.findByAccessToken(accessToken);
+		if (token == null) {
+			throw new UnauthorizedException("Unauthorized access");
+		}
+		Date expiryDate = token.getExpire();
+		int i = new Date().compareTo(expiryDate);
+		if (i > 0)
+			throw new UnauthorizedException("Unauthorized access token");
+		// check for token
+		// if available send to requested resource
+		// else return error message (json)
+		
+		User user = token.getUser();
+		String userType = user.getUserType() == UserType.ADMIN ?"ADMIN" : "USER";
+		String authority = userScope.getAuthority() == Authority.ADMIN ?"ADMIN":"ADMINUSER";
+		
+		if(userType.equals("USER") && authority.equals("ADMIN"))
+			throw new UnauthorizedException("Request forbidden");
+		
+	
+	}
+}

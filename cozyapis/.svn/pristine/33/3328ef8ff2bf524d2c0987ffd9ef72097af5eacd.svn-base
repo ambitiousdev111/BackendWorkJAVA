@@ -1,0 +1,173 @@
+package in.cozynest.cozyapis.rest.impl;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+
+import in.cozynest.cozyapis.annotations.UserAdminPath;
+import in.cozynest.cozyapis.exception.InternalServerErrorException;
+import in.cozynest.cozyapis.exception.NotAcceptableException;
+import in.cozynest.cozyapis.exception.NotFoundException;
+import in.cozynest.cozyapis.model.Order;
+import in.cozynest.cozyapis.model.Order.OrderType;
+import in.cozynest.cozyapis.model.OrderedSubscription;
+import in.cozynest.cozyapis.model.OrderedSubscription.Shift;
+import in.cozynest.cozyapis.model.Package;
+import in.cozynest.cozyapis.model.Subscription;
+import in.cozynest.cozyapis.model.Subscription.Status;
+import in.cozynest.cozyapis.model.SubscriptionPlan;
+import in.cozynest.cozyapis.model.SubscriptionPlan.PlanDuration;
+import in.cozynest.cozyapis.model.SubscriptionPlan.PlanType;
+import in.cozynest.cozyapis.model.User;
+import in.cozynest.cozyapis.rest.IOrderedSubscriptionRest;
+import in.cozynest.cozyapis.service.IOrderedSubscriptionService;
+import in.cozynest.cozyapis.service.impl.OrderedSubscriptionServiceImpl;
+import in.cozynest.cozyapis.service.impl.PackageServiceImpl;
+import in.cozynest.cozyapis.service.impl.SubscriptionServiceImpl;
+import in.cozynest.cozyapis.service.impl.UserServiceImpl;
+
+@Path("orderedsubscription")
+@Produces("application/json")
+public class OrderedSubscriptionRestImpl implements IOrderedSubscriptionRest {
+
+	IOrderedSubscriptionService orderedSubscriptionService = new OrderedSubscriptionServiceImpl();
+
+	SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+
+	@Override
+	@Path("create")
+	@UserAdminPath
+	public OrderedSubscription create(@QueryParam("startDate") String startDate, @QueryParam("endDate") String endDate,
+			@QueryParam("address") String address, @QueryParam("startShift") Shift startShift, @QueryParam("endShift") Shift endShift,
+			@QueryParam("planDuration") PlanDuration planDuration, @QueryParam("planType") PlanType planType, @QueryParam("packageId") int packageId, @QueryParam("userId") int userId) {
+		if (startDate.equals("") || endDate.equals("") || address.equals(""))
+			throw new NotAcceptableException("All feilds required");
+		User user = new UserServiceImpl().findById(userId);
+		Package pakage = new PackageServiceImpl().findById(packageId);
+		if(pakage == null)
+			throw new NotFoundException("No package available with this package id");
+		SubscriptionPlan subscriptionPlan = new SubscriptionPlan();
+		subscriptionPlan.setPakage(pakage);
+		subscriptionPlan.setPlanDuration(planDuration);
+		subscriptionPlan.setPlanType(planType);
+		OrderedSubscription orderedSubscription = new OrderedSubscription();
+		orderedSubscription.setAddress(address);
+		orderedSubscription.setStartShift(startShift);
+		orderedSubscription.setEndShift(endShift);
+		orderedSubscription.setUser(user);
+		orderedSubscription.setSubscriptionPlan(subscriptionPlan);
+		 try {
+			Date newEndDate = formatter.parse(endDate);
+			newEndDate = new Date(newEndDate.getYear(), newEndDate.getMonth(), newEndDate.getDate());
+			System.out.println(newEndDate);
+			orderedSubscription.setEndDate(newEndDate);
+			Date newStartDate = formatter.parse(startDate);
+			newStartDate = new Date(newStartDate.getYear(), newStartDate.getMonth(), newStartDate.getDate());
+			orderedSubscription.setStartDate(newStartDate);
+		} catch (ParseException pe) {
+			System.out.println("SubscriptionRestImpl [public Subscription create()] : " + pe);
+			throw new InternalServerErrorException("Invalid endDate/startDate");
+		}
+
+		OrderedSubscription newOrderedSubscription = orderedSubscriptionService.create(orderedSubscription);
+		if(newOrderedSubscription == null)
+			throw new InternalServerErrorException("Unable to create Order");
+		return newOrderedSubscription;
+	}
+	
+	@Override
+	@Path("convertordertosubscription/{orderedSubscriptionId}")
+	public Subscription convertOrderToSubscription(@PathParam("orderedSubscriptionId") int orderedSubscriptionId) {
+		OrderedSubscription orderedSubscription = orderedSubscriptionService.findById(orderedSubscriptionId);
+		if(orderedSubscription == null)
+			throw new NotFoundException("No order found with this id");
+		Order order = new Order();
+		order.setDateOfOrder(new Date());
+		order.setOrderType(OrderType.TIFFIN);
+		order.setTotalCost(orderedSubscription.getSubscriptionPlan().getPakage().getCost());
+		order.setUser(orderedSubscription.getUser());
+		Subscription subscription = new Subscription();
+		subscription.setAddress(orderedSubscription.getAddress());
+		subscription.setEndDate(orderedSubscription.getEndDate());
+		subscription.setEndShift(orderedSubscription.getEndShift());
+		subscription.setOrder(order);
+		subscription.setStartDate(orderedSubscription.getStartDate());
+		subscription.setStartShift(orderedSubscription.getStartShift());
+		subscription.setStatus(Status.ACTIVE);
+		subscription.setSubscriptionPlan(orderedSubscription.getSubscriptionPlan());
+		Subscription newSubscription = new SubscriptionServiceImpl().create(subscription);
+		if(newSubscription == null)
+			throw new InternalServerErrorException("Unable to convert order to subscription");
+		return newSubscription;
+	}
+
+	@Override
+	@Path("findall")
+	public ArrayList<OrderedSubscription> findAll() {
+		return orderedSubscriptionService.findAll();
+	}
+
+	@Override
+	@Path("findbyid/{id}")
+	@UserAdminPath
+	public OrderedSubscription findById(@QueryParam("id") int id) {
+		return orderedSubscriptionService.findById(id);
+	}
+
+	@Override
+	@Path("findbystartdate/{startDate}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findByStartDate(@QueryParam("startDate") String startDate) {
+		return orderedSubscriptionService.findByStartDate(startDate);
+	}
+
+	@Override
+	@Path("findbyenddate/{endDate}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findByEndDate(@QueryParam("endDate") String endDate) {
+		return orderedSubscriptionService.findByEndDate(endDate);
+	}
+
+	@Override
+	@Path("findbyplantype/{planType}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findByPlanType(@QueryParam("planType") String planType) {
+		return orderedSubscriptionService.findByPlanType(planType);
+	}
+
+	@Override
+	@Path("findbyuserid/{userId}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findByUserId(@QueryParam("userId") int userId) {
+		return orderedSubscriptionService.findByUserId(userId);
+	}
+
+	@Override
+	@Path("findbygenerateduserid/{generatedUserId}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findByGeneratedUserId(@QueryParam("generatedUserId") String generatedUserId) {
+		return orderedSubscriptionService.findByGeneratedUserId(generatedUserId);
+	}
+
+	@Override
+	@Path("findbyphone/{phone}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findByPhone(@QueryParam("phone") String phone) {
+		return orderedSubscriptionService.findByPhone(phone);
+	}
+
+	@Override
+	@Path("findbyenddate/{endDate}/{endShift}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findByEndDateAndEndShift(@QueryParam("endDate") String endDate, @QueryParam("endShift") String endShift) {
+		return orderedSubscriptionService.findByEndDateAndEndShift(endDate, endShift);
+	}
+	
+	
+}

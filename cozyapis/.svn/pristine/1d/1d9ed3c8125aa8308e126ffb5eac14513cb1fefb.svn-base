@@ -1,0 +1,141 @@
+package in.cozynest.cozyapis.model;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.xml.bind.annotation.XmlRootElement;
+
+@NamedQueries({
+	@NamedQuery(name = "OrderedSubscription.findByStartDate", query = "select s from OrderedSubscription s where s.startDate=:startDate"),
+	@NamedQuery(name = "OrderedSubscription.findByEndDate", query = "select s from OrderedSubscription s where s.endDate=:endDate"),
+	@NamedQuery(name = "OrderedSubscription.findByUserId", query = "select s from OrderedSubscription s Join s.order o Join o.user c where c.id=:userId"),
+	@NamedQuery(name = "OrderedSubscription.findByGeneratedUserId", query = "select s from OrderedSubscription s Join s.order o Join o.user c where c.generatedUserId=:generatedUserId"),
+	@NamedQuery(name = "OrderedSubscription.findByPhone", query = "select s from OrderedSubscription s Join s.order o Join o.user c where c.phone=:phone"),
+	@NamedQuery(name = "OrderedSubscription.findUsersByEndDateAndEndShift", query = "select c from OrderedSubscription s Join s.order o Join o.user c where s.endDate=:endDate and s.endShift=:endShift") })
+
+@Entity
+@Table (name = "ordered_subscription")
+@XmlRootElement
+public class OrderedSubscription implements java.io.Serializable {
+	
+	
+	private static final long serialVersionUID = -8998988523331603884L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int id;
+
+	@Temporal(TemporalType.DATE)
+	@Column(name = "start_date", nullable = false)
+	private Date startDate;
+
+	@Temporal(TemporalType.DATE)
+	@Column(name = "end_date", nullable = false)
+	private Date endDate;
+
+	@Column(name = "address", nullable = false)
+	private String address;
+
+	@Column(name = "start_shift", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private Shift startShift;
+
+	@Column(name = "end_shift", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private Shift endShift;
+	
+	@JoinColumn(name="subscription_plan_id")
+	@OneToOne
+	private SubscriptionPlan subscriptionPlan;
+	
+	@JoinColumn(name="user_id")
+	@ManyToOne
+	private User user;
+	
+	public enum Shift {
+		BREAKFAST, LUNCH, DINNER
+	}
+
+	public OrderedSubscription() {
+		super();
+	}
+	
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public Date getStartDate() {
+		return startDate;
+	}
+
+	public void setStartDate(Date startDate) {
+		this.startDate = startDate;
+	}
+
+	public Date getEndDate() {
+		return endDate;
+	}
+
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
+	}
+
+	public String getAddress() {
+		return address;
+	}
+
+	public void setAddress(String address) {
+		this.address = address;
+	}
+
+	public Shift getStartShift() {
+		return startShift;
+	}
+
+	public void setStartShift(Shift startShift) {
+		this.startShift = startShift;
+	}
+
+	public Shift getEndShift() {
+		return endShift;
+	}
+
+	public void setEndShift(Shift endShift) {
+		this.endShift = endShift;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+	
+	public SubscriptionPlan getSubscriptionPlan() {
+		return subscriptionPlan;
+	}
+
+	public void setSubscriptionPlan(SubscriptionPlan subscriptionPlan) {
+		this.subscriptionPlan = subscriptionPlan;
+	}
+
+}

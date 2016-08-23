@@ -1,0 +1,237 @@
+package in.cozynest.cozyapis.rest.impl;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+
+import in.cozynest.cozyapis.annotations.UserAdminPath;
+import in.cozynest.cozyapis.exception.InternalServerErrorException;
+import in.cozynest.cozyapis.exception.NotAcceptableException;
+import in.cozynest.cozyapis.exception.NotFoundException;
+import in.cozynest.cozyapis.model.Order;
+import in.cozynest.cozyapis.model.Order.OrderType;
+import in.cozynest.cozyapis.model.OrderedSubscription;
+import in.cozynest.cozyapis.model.OrderedSubscription.OrderedSubscriptionStatus;
+import in.cozynest.cozyapis.model.OrderedSubscription.Shift;
+import in.cozynest.cozyapis.model.Package;
+import in.cozynest.cozyapis.model.Subscription;
+import in.cozynest.cozyapis.model.Subscription.Status;
+import in.cozynest.cozyapis.model.SubscriptionPlan;
+import in.cozynest.cozyapis.model.SubscriptionPlan.PlanDuration;
+import in.cozynest.cozyapis.model.SubscriptionPlan.PlanType;
+import in.cozynest.cozyapis.model.User;
+import in.cozynest.cozyapis.rest.IOrderedSubscriptionRest;
+import in.cozynest.cozyapis.service.IOrderedSubscriptionService;
+import in.cozynest.cozyapis.service.impl.OrderedSubscriptionServiceImpl;
+import in.cozynest.cozyapis.service.impl.PackageServiceImpl;
+import in.cozynest.cozyapis.service.impl.SubscriptionServiceImpl;
+import in.cozynest.cozyapis.service.impl.UserServiceImpl;
+
+@Path("orderedsubscription")
+@Produces("application/json")
+public class OrderedSubscriptionRestImpl implements IOrderedSubscriptionRest {
+
+	IOrderedSubscriptionService orderedSubscriptionService = new OrderedSubscriptionServiceImpl();
+
+	SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+
+	@POST
+	@Override
+	@Path("create")
+	@UserAdminPath
+	public OrderedSubscription create(@QueryParam("startDate") String startDate, @QueryParam("address") String address,
+			@QueryParam("startShift") Shift startShift, @QueryParam("planDuration") PlanDuration planDuration,
+			@QueryParam("planType") PlanType planType, @QueryParam("packageId") int packageId,
+			@QueryParam("userId") int userId) {
+		if (startDate == null|| address == null)
+			throw new NotAcceptableException("All feilds required");
+		if (startDate.equals("") || address.equals(""))
+			throw new NotAcceptableException("All feilds required");
+		User user = new UserServiceImpl().findById(userId);
+		if(user == null)
+			throw new InternalServerErrorException("Unable to add order : user not found");
+		Package pakage = new PackageServiceImpl().findById(packageId);
+		if (pakage == null)
+			throw new NotFoundException("Unable to add order : No package available with this package id");
+		Shift endShift = null;
+		if(startShift.equals(Shift.BREAKFAST)) 
+			endShift = Shift.BREAKFAST;
+		else if(startShift.equals(Shift.LUNCH))
+			endShift = Shift.DINNER;
+		else if(startShift.equals(Shift.DINNER))
+			endShift = Shift.LUNCH;
+		int duration=0;
+		if(planDuration.equals(PlanDuration.MONTHLY)) {
+			duration=28;
+		}
+		else if(planDuration.equals(PlanDuration.WEEKLY)) {
+			duration=7;
+		}
+		SubscriptionPlan subscriptionPlan = new SubscriptionPlan();
+		subscriptionPlan.setPakage(pakage);
+		subscriptionPlan.setPlanDuration(planDuration);
+		subscriptionPlan.setPlanType(planType);
+		OrderedSubscription orderedSubscription = new OrderedSubscription();
+		orderedSubscription.setAddress(address);
+		orderedSubscription.setStartShift(startShift);
+		orderedSubscription.setUser(user);
+		orderedSubscription.setEndShift(endShift);
+		orderedSubscription.setSubscriptionPlan(subscriptionPlan);
+		orderedSubscription.setOrderStatus(OrderedSubscriptionStatus.NEW);
+		orderedSubscription.setCost(pakage.getCost()*duration);
+		try {
+			Date orderDate = new Date(new Date().getYear(), new Date().getMonth(), new Date().getDate());
+			orderedSubscription.setOrderDate(orderDate);
+			Date newStartDate = formatter.parse(startDate);
+			newStartDate = new Date(newStartDate.getYear(), newStartDate.getMonth(), newStartDate.getDate());
+			Calendar cal = Calendar.getInstance();
+			cal.setTime(newStartDate);
+			cal.add(Calendar.DATE, duration);
+			Date endDate=cal.getTime();
+			endDate = new Date(endDate.getYear(), endDate.getMonth(), endDate.getDate());
+			orderedSubscription.setStartDate(newStartDate);
+			orderedSubscription.setEndDate(endDate);
+		} catch (ParseException pe) {
+			System.out.println("SubscriptionRestImpl [public Subscription create()] : " + pe);
+			throw new InternalServerErrorException("Invalid endDate/startDate");
+		}
+
+		OrderedSubscription newOrderedSubscription = orderedSubscriptionService.create(orderedSubscription);
+		if (newOrderedSubscription == null)
+			throw new InternalServerErrorException("Unable to create Order");
+		return newOrderedSubscription;
+	}
+
+	@POST
+	@Override
+	@Path("convertordertosubscription/{orderedSubscriptionId}")
+	public Subscription convertOrderToSubscription(@PathParam("orderedSubscriptionId") int orderedSubscriptionId) {
+		OrderedSubscription orderedSubscription = orderedSubscriptionService.findById(orderedSubscriptionId);
+		if (orderedSubscription == null)
+			throw new NotFoundException("No order found with this id");
+		Order order = new Order();
+		order.setDateOfOrder(new Date());
+		order.setOrderType(OrderType.TIFFIN);
+		order.setTotalCost(orderedSubscription.getSubscriptionPlan().getPakage().getCost());
+		order.setUser(orderedSubscription.getUser());
+		Subscription subscription = new Subscription();
+		subscription.setAddress(orderedSubscription.getAddress());
+		subscription.setEndDate(orderedSubscription.getEndDate());
+		subscription.setEndShift(orderedSubscription.getEndShift());
+		subscription.setOrder(order);
+		subscription.setStartDate(orderedSubscription.getStartDate());
+		subscription.setStartShift(orderedSubscription.getStartShift());
+		subscription.setStatus(Status.ACTIVE);
+		subscription.setSubscriptionPlan(orderedSubscription.getSubscriptionPlan());
+		Subscription newSubscription = new SubscriptionServiceImpl().createNewSubscription(subscription);
+		if (newSubscription == null)
+			throw new InternalServerErrorException("Unable to convert order to subscription");
+		return newSubscription;
+	}
+
+	@GET
+	@Override
+	@Path("findall")
+	public ArrayList<OrderedSubscription> findAll() {
+		ArrayList<OrderedSubscription> orderedSubscriptions = orderedSubscriptionService.findAll();
+		if(orderedSubscriptions == null)
+			throw new NotFoundException("No record found");
+		return orderedSubscriptions;
+	}
+
+	@GET
+	@Override
+	@Path("findbyid/{id}")
+	public OrderedSubscription findById(@PathParam("id") int id) {
+		OrderedSubscription orderedSubscription = orderedSubscriptionService.findById(id);
+		if(orderedSubscription == null)
+			throw new NotFoundException("No record found with this id");
+		System.out.println(orderedSubscription);
+		OrderedSubscription updatedOrderedSubscription=orderedSubscriptionService.checkAndUpdateStatus(orderedSubscription);
+		System.out.println(updatedOrderedSubscription);
+		return updatedOrderedSubscription;
+	}
+
+	@GET
+	@Override
+	@Path("findbystartdate/{startDate}")
+	public ArrayList<OrderedSubscription> findByStartDate(@PathParam("startDate") String startDate) {
+		ArrayList<OrderedSubscription> orderedSubscriptions = orderedSubscriptionService.findByStartDate(startDate);
+		if(orderedSubscriptions == null)
+			throw new NotFoundException("No record found with this start date");
+		return orderedSubscriptions;
+	}
+
+	@GET
+	@Override
+	@Path("findbyenddate/{endDate}")
+	public ArrayList<OrderedSubscription> findByEndDate(@PathParam("endDate") String endDate) {
+		ArrayList<OrderedSubscription> orderedSubscriptions = orderedSubscriptionService.findByEndDate(endDate);
+		if(orderedSubscriptions == null)
+			throw new NotFoundException("No record found with this end date");
+		return orderedSubscriptions;
+	}
+
+	@GET
+	@Override
+	@Path("findbyplantype/{planType}")
+	public ArrayList<OrderedSubscription> findByPlanType(@PathParam("planType") String planType) {
+		ArrayList<OrderedSubscription> orderedSubscriptions = orderedSubscriptionService.findByPlanType(planType);
+		if(orderedSubscriptions == null)
+			throw new NotFoundException("No record found with this plan");
+		return orderedSubscriptions;
+	}
+
+	@GET
+	@Override
+	@Path("findbyuserid/{userId}")
+	public ArrayList<OrderedSubscription> findByUserId(@PathParam("userId") int userId) {
+		ArrayList<OrderedSubscription> orderedSubscriptions = orderedSubscriptionService.findByUserId(userId);
+		if(orderedSubscriptions == null)
+			throw new NotFoundException("No record found of this user");
+		return orderedSubscriptions;
+	}
+
+	@GET
+	@Override
+	@Path("findbygenerateduserid/{generatedUserId}")
+	public ArrayList<OrderedSubscription> findByGeneratedUserId(@PathParam("generatedUserId") String generatedUserId) {
+		ArrayList<OrderedSubscription> orderedSubscriptions = orderedSubscriptionService.findByGeneratedUserId(generatedUserId);
+		if(orderedSubscriptions == null)
+		 	throw new NotFoundException("No record found of this user");
+		return orderedSubscriptions;
+	}
+
+	@GET
+	@Override
+	@Path("findbyphone/{phone}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findByPhone(@PathParam("phone") String phone) {
+		ArrayList<OrderedSubscription> orderedSubscriptions = orderedSubscriptionService.findByPhone(phone);
+		if(orderedSubscriptions == null)
+			throw new NotFoundException("No record found of this user");
+		return orderedSubscriptions;
+	}
+
+	@GET
+	@Override
+	@Path("findbyenddateandendshift/{endDate}/{endShift}")
+	@UserAdminPath
+	public ArrayList<OrderedSubscription> findByEndDateAndEndShift(@PathParam("endDate") String endDate,
+			@PathParam("endShift") String endShift) {
+		ArrayList<OrderedSubscription> orderedSubscriptions = orderedSubscriptionService.findByEndDateAndEndShift(endDate, endShift);
+		if(orderedSubscriptions == null)
+			throw new NotFoundException("No record found by this end date end end shift");
+		return orderedSubscriptions;
+	}
+
+}

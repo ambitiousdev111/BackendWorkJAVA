@@ -1,0 +1,155 @@
+package in.cozynest.cozyapis.rest.impl;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+
+import in.cozynest.cozyapis.annotations.AdminPath;
+import in.cozynest.cozyapis.annotations.UserAdminPath;
+import in.cozynest.cozyapis.exception.InternalServerErrorException;
+import in.cozynest.cozyapis.exception.NotAcceptableException;
+import in.cozynest.cozyapis.exception.NotFoundException;
+import in.cozynest.cozyapis.model.User;
+import in.cozynest.cozyapis.model.User.Gender;
+import in.cozynest.cozyapis.rest.IUserRest;
+import in.cozynest.cozyapis.service.IUserService;
+import in.cozynest.cozyapis.service.impl.UserServiceImpl;
+
+@Path("user")
+@Produces("application/json")
+@Consumes("application/json")
+public class UserRestImpl implements IUserRest {
+
+	SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+	IUserService userService = new UserServiceImpl();
+	
+	@Context
+	private HttpHeaders httpHeaders;
+	
+	@POST
+	@Path("add")
+	public User create(@QueryParam("name") String name, @QueryParam("phone") String phone,
+			@QueryParam("dateOfBirth") String dateOfBirth, @QueryParam("gender") Gender gender) {
+		if (name.equals("") || phone.equals("") || dateOfBirth.equals(""))
+			throw new NotAcceptableException("All feilds required");
+		User user = new User();
+		try {
+			user.setDateOfBirth(formatter.parse(dateOfBirth));
+		} catch (ParseException pe) {
+			System.out.println(
+					"public class UserRestImpl [public User create(String name, String phone, String dateOfBirth, Gender gender)] : "
+							+ pe);
+			throw new InternalServerErrorException("Invalid dateOfBirth");
+		}
+		user.setGender(gender);
+		user.setName(name);
+		user.setPhone(phone);
+		return userService.create(user);
+	}
+
+	@GET
+	@Path("hi")
+	@AdminPath
+	public String hi() {
+		return "[\"hi\"]";
+	}
+
+	@GET
+	@Path("hello")
+	@UserAdminPath
+	public String hello() {
+		return "[\"hello\"]";
+	}
+	
+	@PUT
+	@Path("update")
+	public User update(@QueryParam("id") int id, @QueryParam("name") String name, @QueryParam("phone") String phone,
+			@QueryParam("gender") Gender gender, @QueryParam("dateOfBirth") String dateOfBirth) {
+		if (name.equals("") || phone.equals("") || dateOfBirth.equals(""))
+			throw new NotAcceptableException("All feilds required");
+		User user = userService.findById(id);
+		try {
+			user.setDateOfBirth(formatter.parse(dateOfBirth));
+		} catch (ParseException pe) {
+			System.out.println(pe);
+		}
+		user.setGender(gender);
+		user.setName(name);
+		user.setPhone(phone);
+		return userService.update(user);
+	}
+
+	@GET
+	@Path("findall")
+	public ArrayList<User> findAll() {
+		ArrayList<User> users = userService.findAll();
+		if (users == null)
+			throw new NotFoundException("No record found ");
+		return users;
+	}
+
+	@GET
+	@Path("findbygenerateduserid/{userId}")
+	public User findByUserId(@PathParam("userId") String userId) {
+		User user = userService.findByGeneratedUserId(userId);
+		if (user == null)
+			throw new NotFoundException("No record found for this generatedUserId and userId");
+		return user;
+	}
+
+	@GET
+	@Path("findbyphone/{phone}")
+	public User findByPhone(@PathParam("phone") String phone) {
+		User user = userService.findByPhone(phone);
+		if (user == null)
+			throw new NotFoundException("No record found for this phone");
+		return user;
+	}
+
+	@GET
+	@Path("findbyphone/{phone}/userid/{userId}")
+	public User findByGeneratedUserIdOrPhone(@PathParam("phone") String phone, @PathParam("userId") String userId) {
+		User user = userService.findByGeneratedUserIdOrPhone(userId, phone);
+		if (user == null)
+			throw new NotFoundException("No record found for this phone and userId");
+		return user;
+	}
+
+	@GET
+	@Path("findbygenerateduserid/{generatedUserId}/password/{password}")
+	public User findByGeneratedUserIdAndPassword(@PathParam("generatedUserId") String generatedUserId,
+			@PathParam("password") String password) {
+		User user = userService.findByGeneratedUserIdAndPassword(generatedUserId, password);
+		if (user == null)
+			throw new NotFoundException("No record found for this generatedUserId and Password");
+		return user;
+	}
+
+	@Override
+	public User findByPhoneAndPassword(@PathParam("phone") String phone, @PathParam("password") String password) {
+		User user = userService.findByPhoneAndPassword(phone, password);
+		if (user == null)
+			throw new NotFoundException("No record found for this phone number and Password");
+		return user;
+	}
+
+	@Override
+	public User findByEmailAndPassword(@PathParam("email") String email, @PathParam("password") String password) {
+		User user = userService.findByEmailAndPassword(email, password);
+		if (user == null)
+			throw new NotFoundException("No record found for this email and Password");
+		return user;
+	}
+
+}

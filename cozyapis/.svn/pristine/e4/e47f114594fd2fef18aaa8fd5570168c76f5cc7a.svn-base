@@ -1,0 +1,261 @@
+package in.cozynest.cozyapis.model;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.xml.bind.annotation.XmlRootElement;
+
+@NamedQueries({
+		@NamedQuery(name = "Subscription.findByStatus", query = "select s from Subscription s where s.status=:status"),
+		@NamedQuery(name = "Subscription.findByStartDate", query = "select s from Subscription s where s.startDate=:startDate"),
+		@NamedQuery(name = "Subscription.findBySubscriptionType", query = "select s from Subscription s where s.subscriptionType=:subscriptionType"),
+		@NamedQuery(name = "Subscription.findByEndDate", query = "select s from Subscription s where s.endDate=:endDate"),
+		@NamedQuery(name = "Subscription.findByAddon", query = "select s from Subscription s where s.addon=:addon"),
+		@NamedQuery(name = "Subscription.findByOrderId", query = "select s from Subscription s Join s.order o where o.id=:orderId"),
+		@NamedQuery(name = "Subscription.findByUserId", query = "select s from Subscription s Join s.order o Join o.user c where c.id=:userId"),
+		@NamedQuery(name = "Subscription.findByGeneratedUserId", query = "select s from Subscription s Join s.order o Join o.user c where c.generatedUserId=:generatedUserId"),
+		@NamedQuery(name = "Subscription.findByPhone", query = "select s from Subscription s Join s.order o Join o.user c where c.phone=:phone"),
+		@NamedQuery(name = "Subscription.findTodaysDeliveryByCurrentDateAndCurrentShift", query = "select s from Subscription s Join s.order o Join o.user c where s.status='ACTIVE' and (s.subscriptionType=:shift or s.subscriptionType='LUNCHDINNER') and s not in (select csd.subscription.id from CancelledSubscriptionDate csd where csd.cancelDate=:date and csd.cancelShift=:cancelShift)"),
+		@NamedQuery(name = "Subscription.findUsersByEndDateAndEndShift", query = "select c from Subscription s Join s.order o Join o.user c where s.endDate=:endDate and s.endShift=:endShift") })
+
+@Entity
+@Table(name = "subscription")
+@XmlRootElement
+public class Subscription implements java.io.Serializable {
+
+	private static final long serialVersionUID = 7036106481573535547L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int id;
+
+	@Column(name = "subscription_shift", nullable = false)
+	@Enumerated(EnumType.STRING)
+	SubscriptionType subscriptionType;
+
+	@Temporal(TemporalType.DATE)
+	@Column(name = "start_date", nullable = false)
+	private java.util.Date startDate;
+
+	@Temporal(TemporalType.DATE)
+	@Column(name = "end_date", nullable = false)
+	private java.util.Date endDate;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "status", nullable = false)
+	private Status status;
+
+	@Column(name = "cost", nullable = false)
+	private double cost;
+
+	@Column(name = "cost_of_unit", nullable = false)
+	private double costOfUnit;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "package_type", nullable = false)
+	private PackageType packageType;
+
+	@OneToOne
+	@JoinColumn(name = "order_id")
+	private Order order;
+
+	@Column(name = "addon", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private Addon addon;
+
+	@Column(name = "address", nullable = false)
+	private String address;
+
+	@Column(name = "start_shift", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private Shift startShift;
+
+	@Column(name = "end_shift", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private Shift endShift;
+
+	@Column(name = "duration", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private PlanType planType;
+
+	public enum PackageType {
+		SMALL, MEDIUM, LARGE
+	}
+
+	public enum PlanType {
+		MONTHLY, WEEKLY
+	}
+
+	public enum SubscriptionType {
+		LUNCH, DINNER, LUNCHDINNER
+	}
+
+	public enum Status {
+		PENDING, ACTIVE, PAYMENTINCOMPLETE
+	}
+
+	public enum Addon {
+		TRUE, FALSE
+	}
+
+	public enum Shift {
+		MORNING, EVENING
+	}
+
+	public Subscription() {
+		super();
+	}
+
+	public Subscription(SubscriptionType subscriptionType, Date startDate, Date endDate, Status status, double cost,
+			double costOfUnit, PackageType packageType, Order order, Addon addon, String address, Shift startShift,
+			Shift endShift, PlanType planType) {
+		super();
+		this.subscriptionType = subscriptionType;
+		this.startDate = startDate;
+		this.endDate = endDate;
+		this.status = status;
+		this.cost = cost;
+		this.costOfUnit = costOfUnit;
+		this.packageType = packageType;
+		this.order = order;
+		this.addon = addon;
+		this.address = address;
+		this.startShift = startShift;
+		this.endShift = endShift;
+		this.planType = planType;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public SubscriptionType getSubscriptionType() {
+		return subscriptionType;
+	}
+
+	public void setSubscriptionType(SubscriptionType subscriptionType) {
+		this.subscriptionType = subscriptionType;
+	}
+
+	public java.util.Date getStartDate() {
+		return startDate;
+	}
+
+	public void setStartDate(java.util.Date startDate) {
+		this.startDate = startDate;
+	}
+
+	public java.util.Date getEndDate() {
+		return endDate;
+	}
+
+	public void setEndDate(java.util.Date endDate) {
+		this.endDate = endDate;
+	}
+
+	public Status getStatus() {
+		return status;
+	}
+
+	public void setStatus(Status status) {
+		this.status = status;
+	}
+
+	public double getCost() {
+		return cost;
+	}
+
+	public void setCost(double cost) {
+		this.cost = cost;
+	}
+
+	public double getCostOfUnit() {
+		return costOfUnit;
+	}
+
+	public void setCostOfUnit(double costOfUnit) {
+		this.costOfUnit = costOfUnit;
+	}
+
+	public PackageType getPackageType() {
+		return packageType;
+	}
+
+	public void setPackageType(PackageType packageType) {
+		this.packageType = packageType;
+	}
+
+	public Order getOrder() {
+		return order;
+	}
+
+	public void setOrder(Order order) {
+		this.order = order;
+	}
+
+	public Addon getAddon() {
+		return addon;
+	}
+
+	public void setAddon(Addon addon) {
+		this.addon = addon;
+	}
+
+	public String getAddress() {
+		return address;
+	}
+
+	public void setAddress(String address) {
+		this.address = address;
+	}
+
+	public Shift getStartShift() {
+		return startShift;
+	}
+
+	public void setStartShift(Shift startShift) {
+		this.startShift = startShift;
+	}
+
+	public Shift getEndShift() {
+		return endShift;
+	}
+
+	public void setEndShift(Shift endShift) {
+		this.endShift = endShift;
+	}
+
+	public PlanType getPlanType() {
+		return planType;
+	}
+
+	public void setPlanType(PlanType planType) {
+		this.planType = planType;
+	}
+
+	@Override
+	public String toString() {
+		return "Subscription [id=" + id + ", subscriptionType=" + subscriptionType + ", startDate=" + startDate
+				+ ", endDate=" + endDate + ", status=" + status + ", cost=" + cost + ", costOfUnit=" + costOfUnit
+				+ ", packageType=" + packageType + ", order=" + order + ", addon=" + addon + ", address=" + address
+				+ ", startShift=" + startShift + ", endShift=" + endShift + ", planType=" + planType + "]";
+	}
+
+}

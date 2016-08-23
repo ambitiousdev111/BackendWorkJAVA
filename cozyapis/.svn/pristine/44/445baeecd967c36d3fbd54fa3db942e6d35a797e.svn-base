@@ -1,0 +1,91 @@
+package in.cozynest.cozyapis.service.impl;
+
+import java.util.ArrayList;
+
+import in.cozynest.cozyapis.dao.ICancelledSubscriptionDateDao;
+import in.cozynest.cozyapis.dao.impl.CancelledSubscriptionDateDaoImpl;
+import in.cozynest.cozyapis.exception.InternalServerErrorException;
+import in.cozynest.cozyapis.model.CancelledSubscriptionDate;
+import in.cozynest.cozyapis.model.UserWallet;
+import in.cozynest.cozyapis.service.ICancelledSubscriptionDateService;
+
+public class CancelledSubscriptionDateServiceImpl implements ICancelledSubscriptionDateService {
+
+	ICancelledSubscriptionDateDao cancelledSubscriptionDateDao = new CancelledSubscriptionDateDaoImpl();
+
+	public boolean exists(int pk) {
+		return cancelledSubscriptionDateDao.exists(pk);
+	}
+
+	public long count() {
+		return cancelledSubscriptionDateDao.count();
+	}
+
+	public CancelledSubscriptionDate create(CancelledSubscriptionDate cancelledSubscriptionDate) {
+		CancelledSubscriptionDate newCancelledSubscriptionDate = cancelledSubscriptionDateDao
+				.create(cancelledSubscriptionDate);
+		if (newCancelledSubscriptionDate == null)
+			throw new InternalServerErrorException("Unable to create record");
+		double costOfUnit = newCancelledSubscriptionDate.getSubscription().getOrderedSubscription().getPakage().getCostOfUnit();
+		int userId = newCancelledSubscriptionDate.getSubscription().getOrderedSubscription().getOrder().getUser().getId();
+		UserWallet userWallet = new UserWalletServiceImpl().addAmountToWallet(userId, costOfUnit);
+		if (userWallet == null)
+			throw new InternalServerErrorException("Unable to add wallet amount of " + costOfUnit
+					+ " for subscription id :" + newCancelledSubscriptionDate.getSubscription().getId()
+					+ " and Cancelled subscription date id : " + cancelledSubscriptionDate.getId());
+		return newCancelledSubscriptionDate;
+	}
+
+	public CancelledSubscriptionDate update(CancelledSubscriptionDate cancelledSubscriptionDate) {
+		return cancelledSubscriptionDateDao.update(cancelledSubscriptionDate);
+	}
+
+	public void delete(CancelledSubscriptionDate cancelledSubscriptionDate) {
+		cancelledSubscriptionDateDao.delete(cancelledSubscriptionDate);
+	}
+
+	public ArrayList<CancelledSubscriptionDate> findAll() {
+		return cancelledSubscriptionDateDao.findAll();
+	}
+
+	public CancelledSubscriptionDate findById(int id) {
+		return cancelledSubscriptionDateDao.findById(id);
+	}
+
+	@Override
+	public ArrayList<CancelledSubscriptionDate> findByUserId(int userId) {
+		return cancelledSubscriptionDateDao.findByUserId(userId);
+	}
+
+	@Override
+	public ArrayList<CancelledSubscriptionDate> findBySubscriptionId(int subscriptionId) {
+		return cancelledSubscriptionDateDao.findBySubscriptionId(subscriptionId);
+	}
+
+	@Override
+	public ArrayList<CancelledSubscriptionDate> findByOrderId(int orderId) {
+		return cancelledSubscriptionDateDao.findByOrderId(orderId);
+	}
+
+	@Override
+	public ArrayList<CancelledSubscriptionDate> findByTransactionId(int transactionId) {
+		return cancelledSubscriptionDateDao.findByTransactionId(transactionId);
+	}
+
+	@Override
+	public ArrayList<CancelledSubscriptionDate> findByDate(String date) {
+		return cancelledSubscriptionDateDao.findByDate(date);
+	}
+
+	@Override
+	public ArrayList<CancelledSubscriptionDate> findByDateAndSubscriptionShift(String date, String shift) {
+		return cancelledSubscriptionDateDao.findByDateAndSubscriptionShift(date, shift);
+	}
+
+	@Override
+	public ArrayList<CancelledSubscriptionDate> findByDateAndSubscriptionShiftAndUserId(String date,
+			String subscriptionShift, int userId) {
+		return cancelledSubscriptionDateDao.findByDateAndSubscriptionShiftAndUserId(date, subscriptionShift, userId);
+	}
+
+}

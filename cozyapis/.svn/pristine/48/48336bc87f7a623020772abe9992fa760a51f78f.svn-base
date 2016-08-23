@@ -1,0 +1,102 @@
+package in.cozynest.cozyapis.rest.impl;
+
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+
+import in.cozynest.cozyapis.exception.UnauthorizedException;
+import in.cozynest.cozyapis.model.Token;
+import in.cozynest.cozyapis.model.User;
+import in.cozynest.cozyapis.rest.ILoginRest;
+import in.cozynest.cozyapis.security.CryptoAlgo;
+import in.cozynest.cozyapis.service.IUserService;
+import in.cozynest.cozyapis.service.impl.UserServiceImpl;
+
+@Path("login")
+public class LoginRestImpl implements ILoginRest {
+
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public String login(@QueryParam("email") String email, @QueryParam("password") String password) {
+		IUserService userService = new UserServiceImpl();
+		Token token = null;
+		Pattern pattern = Pattern.compile(".+@.+\\.[a-z]+");
+		User user;
+		String encryptedGeneratedUserId = "";
+		CryptoAlgo cryptoAlgo = null;
+		try {
+			Integer.parseInt(email);
+			Matcher matcher = pattern.matcher(email);
+			if(matcher.matches())
+				user = userService.findByEmailAndPassword(email, password);
+				
+			user = userService.findByGeneratedUserIdAndPassword(email, password);
+		} catch (NumberFormatException nfe) {
+			user = userService.findByPhoneAndPassword(email, password);
+		}
+		if (user == null) {
+			throw new UnauthorizedException("user not registered");
+		} else {
+			// generate token
+
+			token = new Token();
+			try {
+				token.setUser(user);
+				encryptedGeneratedUserId = cryptoAlgo.encrypt("kelkarsirjiuserid", user.getGeneratedUserId());
+				token.setAccessToken(cryptoAlgo.encrypt("kelkarsirjitoken",
+						user.getGeneratedUserId() + System.currentTimeMillis()));
+				token.setUser(user);
+				token.setIssueDate(new Date());
+				token.setExpire(addDays(new Date(), 365));
+
+			} catch (InvalidKeyException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvalidKeySpecException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NoSuchPaddingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvalidAlgorithmParameterException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalBlockSizeException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (BadPaddingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+		String retValue = "[\"ui\":" + encryptedGeneratedUserId + "," + "\"ut\":" + token.getAccessToken() + "]";
+		return retValue;
+	}
+
+	public static Date addDays(Date d, int days) {
+		d.setTime(d.getTime() + days * 1000 * 60 * 60 * 24);
+		return d;
+	}
+
+}

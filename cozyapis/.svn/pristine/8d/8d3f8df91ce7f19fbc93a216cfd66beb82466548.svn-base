@@ -1,0 +1,45 @@
+package in.cozynest.cozyapis.rest.filter;
+
+import java.io.IOException;
+import java.util.Date;
+
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.PreMatching;
+import javax.ws.rs.ext.Provider;
+
+import in.cozynest.cozyapis.exception.UnauthorizedException;
+import in.cozynest.cozyapis.model.Token;
+import in.cozynest.cozyapis.service.ITokenService;
+import in.cozynest.cozyapis.service.impl.TokenServiceImpl;
+
+@Provider
+@PreMatching
+public class TokenizedPathFilter implements ContainerRequestFilter {
+
+	@Override
+	public void filter(ContainerRequestContext requestContext) throws IOException {
+		String g=requestContext.getUriInfo().getPath();
+		String []p=g.split("/");
+		if(p[0].equals("login"))
+		{	System.out.println("login");	
+			return;
+		}
+		else {
+			String accessToken = requestContext.getHeaderString("Authorization");
+			ITokenService tokenService = new TokenServiceImpl();
+			Token token = tokenService.findByAccessToken(accessToken);
+			if(token==null) {
+				throw new UnauthorizedException("Unauthorized access");
+			}
+			Date expiryDate = token.getExpire();
+			int i=new Date().compareTo(expiryDate);
+			if(i>0)
+				throw new UnauthorizedException("Unauthorized access token");
+			// check for token
+			// if available send to requested resource
+			// else return error message (json)
+		}
+	}
+
+}

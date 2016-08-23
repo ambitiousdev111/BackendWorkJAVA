@@ -1,0 +1,53 @@
+package in.cozynest.cozyapis.rest;
+
+import java.util.ArrayList;
+
+import javax.ws.rs.PathParam;
+
+import in.cozynest.cozyapis.model.User;
+import in.cozynest.cozyapis.model.Subscription;
+import in.cozynest.cozyapis.model.Subscription.Addon;
+import in.cozynest.cozyapis.model.Subscription.PackageType;
+import in.cozynest.cozyapis.model.Subscription.PlanType;
+import in.cozynest.cozyapis.model.Subscription.Shift;
+import in.cozynest.cozyapis.model.Subscription.Status;
+import in.cozynest.cozyapis.model.Subscription.SubscriptionType;
+import in.cozynest.cozyapis.utils.DailyCommingStatusWrapper;
+
+public interface ISubscriptionRest {
+
+	public Subscription create(SubscriptionType subscriptionType, String startDate, String endDate, Status status,
+			double cost, double costOfUnit, Addon addon, int orderId, String address, PackageType packageType,
+			String deductFromWallet, Shift startShift, Shift endShift, PlanType planType);
+
+	public Subscription update(int id, Status status);
+
+	public ArrayList<Subscription> findAll();
+
+	public Subscription findById(int id);
+
+	public ArrayList<Subscription> findByStatus(String status);
+
+	public ArrayList<Subscription> findByStartDate(String startDate);
+
+	public ArrayList<Subscription> findByEndDate(String endDate);
+
+	public ArrayList<Subscription> findBySubscriptionShift(String subscriptionType);
+
+	public ArrayList<Subscription> findByAddon(String Addon);
+
+	public ArrayList<Subscription> findByUserId(int userId);
+
+	public ArrayList<Subscription> findByOrderId(int orderId);
+	
+	public ArrayList<Subscription> findByGeneratedUserId(String generatedUserId);
+	
+	public ArrayList<Subscription> findByPhone(String phone);
+
+	public ArrayList<Subscription> findTodaysDeliveriesByCurrentDateAndCurrentShift(String date,
+			String subscriptionShift, String cancelShift);
+
+	public DailyCommingStatusWrapper findDailyCommingStatus(int subscriptionId);
+
+	public ArrayList<User> findByEndDateAndEndShift(String endDate, String endShift);
+}

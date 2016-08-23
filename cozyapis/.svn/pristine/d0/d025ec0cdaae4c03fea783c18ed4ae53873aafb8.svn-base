@@ -1,0 +1,91 @@
+package in.cozynest.cozyapis.rest.filter;
+
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Date;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.PreMatching;
+import javax.ws.rs.ext.Provider;
+
+import in.cozynest.cozyapis.exception.InternalServerErrorException;
+import in.cozynest.cozyapis.exception.MethodNotAllowedException;
+import in.cozynest.cozyapis.exception.NotFoundException;
+import in.cozynest.cozyapis.exception.UnauthorizedException;
+import in.cozynest.cozyapis.model.Token;
+import in.cozynest.cozyapis.model.User;
+import in.cozynest.cozyapis.model.User.UserType;
+import in.cozynest.cozyapis.model.UserScope;
+import in.cozynest.cozyapis.model.UserScope.Authority;
+import in.cozynest.cozyapis.security.CryptoAlgo;
+import in.cozynest.cozyapis.service.ITokenService;
+import in.cozynest.cozyapis.service.IUserScopeService;
+import in.cozynest.cozyapis.service.impl.TokenServiceImpl;
+import in.cozynest.cozyapis.service.impl.UserScopeServiceImpl;
+import in.cozynest.cozyapis.service.impl.UserServiceImpl;
+
+@Provider
+@PreMatching
+public class TokenizedPathFilter implements ContainerRequestFilter {
+
+	@Override
+	public void filter(ContainerRequestContext requestContext) throws IOException {
+		String scope = requestContext.getUriInfo().getPath();
+		String method=requestContext.getMethod();
+		IUserScopeService UserScopeService = new UserScopeServiceImpl();
+		UserScope userScope = UserScopeService.findByScope(scope);
+		if(true)
+			return;
+		
+		if(userScope==null)
+			throw new NotFoundException("Url not found");
+		
+		String scopeMethod = userScope.getMethod().name();
+		if(!method.equals(scopeMethod))
+			throw new MethodNotAllowedException("Method not allowed");
+		
+		
+		
+		if(userScope.getAuthority() == Authority.ALL)
+			return;
+		
+		String accessToken = requestContext.getHeaderString("Authorization");
+		ITokenService tokenService = new TokenServiceImpl();
+		Token token = tokenService.findByAccessToken(accessToken);
+		if (token == null) {
+			throw new UnauthorizedException("Unauthorized access");
+		}
+		Date expiryDate = token.getExpire();
+		int i = new Date().compareTo(expiryDate);
+		if (i > 0)
+			throw new UnauthorizedException("Unauthorized access token");
+		try {
+		String generatedUserId = new CryptoAlgo().decrypt("kelkarsirjiuserid", requestContext.getHeaderString("AuthId"));
+		User user = new UserServiceImpl().findByGeneratedUserId(generatedUserId);
+		if(user.getId() != token.getUser().getId())
+			throw new UnauthorizedException("Unauthorized access");
+		}catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException | IOException e1) {
+			e1.printStackTrace();
+			throw new InternalServerErrorException("Error due to cryptographic algorithm");
+		}
+		// check for token
+		// if available send to requested resource
+		// else return error message (json)
+		
+		User user = token.getUser();
+		String userType = user.getUserType() == UserType.ADMIN ?"ADMIN" : "USER";
+		String authority = userScope.getAuthority() == Authority.ADMIN ?"ADMIN":"ADMINUSER";
+		
+		if(userType.equals("USER") && authority.equals("ADMIN"))
+			throw new UnauthorizedException("Request forbidden");
+		
+	
+	}
+}

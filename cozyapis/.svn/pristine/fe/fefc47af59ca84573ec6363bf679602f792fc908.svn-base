@@ -1,0 +1,104 @@
+package in.cozynest.cozyapis.model;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlRootElement;
+
+@NamedQueries({
+		@NamedQuery(name = "CancelledSubscriptionDate.findByUserId", query = "select csd from CancelledSubscriptionDate csd Join csd.subscription s Join s.order o Join o.user c where c.id=:userId"),
+		@NamedQuery(name = "CancelledSubscriptionDate.findBySubscriptionId", query = "select csd from CancelledSubscriptionDate csd Join csd.subscription s where s.id=:subscriptionId"),
+		@NamedQuery(name = "CancelledSubscriptionDate.findByTransactionId", query = "select csd from CancelledSubscriptionDate csd Join csd.subscription s Join s.order o where o in (select t.order from Transaction t where t.id=:transactionId)"),
+		@NamedQuery(name = "CancelledSubscriptionDate.findByOrderId", query = "select csd from CancelledSubscriptionDate csd Join csd.subscription s Join s.order o where o.id=:orderId"),
+		@NamedQuery(name = "CancelledSubscriptionDate.findByDate", query = "select csd from CancelledSubscriptionDate csd where csd.cancelDate=:date"),
+		@NamedQuery(name = "CancelledSubscriptionDate.findByDateAndSubscriptionShift", query = "select csd from CancelledSubscriptionDate csd where csd.cancelDate=:date and csd.cancelShift=:subscriptionShift"),
+		@NamedQuery(name = "CancelledSubscriptionDate.findByDateAndSubscriptionShiftAndUserId", query = "select csd from CancelledSubscriptionDate csd Join csd.subscription s Join s.order o Join o.user c where csd.cancelDate=:date and csd.cancelShift=:subscriptionShift and c.id=:userId") })
+
+@Entity
+@Table(name = "cancelled_subscription_date")
+@XmlRootElement
+public class CancelledSubscriptionDate implements java.io.Serializable {
+
+	private static final long serialVersionUID = 4786399652972255851L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int id;
+
+	@Column(name = "cancel_date", nullable = false)
+	private java.util.Date cancelDate;
+
+	@ManyToOne
+	@JoinColumn(name = "subscription_id", nullable = false)
+	private Subscription subscription;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "cancel_shift")
+	private CancelShift cancelShift;
+
+	public CancelledSubscriptionDate(int id, Date cancelDate, Subscription subscription, CancelShift cancelShift) {
+		super();
+		this.id = id;
+		this.cancelDate = cancelDate;
+		this.cancelShift = cancelShift;
+		this.subscription = subscription;
+	}
+
+	public enum CancelShift {
+		LUNCH, DINNER
+	}
+
+	public CancelledSubscriptionDate() {
+		super();
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public java.util.Date getCancelDate() {
+		return cancelDate;
+	}
+
+	public void setCancelDate(java.util.Date cancelDate) {
+		this.cancelDate = cancelDate;
+	}
+
+	public Subscription getSubscription() {
+		return subscription;
+	}
+
+	public void setSubscription(Subscription subscription) {
+		this.subscription = subscription;
+	}
+
+	public CancelShift getCancelShift() {
+		return cancelShift;
+	}
+
+	public void setCancelShift(CancelShift cancelShift) {
+		this.cancelShift = cancelShift;
+	}
+
+	@Override
+	public String toString() {
+		return "CancelledSubscriptionDate [id=" + id + ", cancelDate=" + cancelDate + ", subscription=" + subscription
+				+ ", cancelShift=" + cancelShift + "]";
+	}
+
+}

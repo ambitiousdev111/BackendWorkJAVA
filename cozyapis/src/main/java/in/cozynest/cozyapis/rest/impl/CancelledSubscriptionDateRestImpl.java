@@ -1,0 +1,176 @@
+package in.cozynest.cozyapis.rest.impl;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+
+import in.cozynest.cozyapis.exception.InternalServerErrorException;
+import in.cozynest.cozyapis.exception.NotFoundException;
+import in.cozynest.cozyapis.model.CancelledSubscriptionDate;
+import in.cozynest.cozyapis.model.CancelledSubscriptionDate.CancelShift;
+import in.cozynest.cozyapis.model.Subscription;
+import in.cozynest.cozyapis.rest.ICancelledSubscriptionDateRest;
+import in.cozynest.cozyapis.service.ICancelledSubscriptionDateService;
+import in.cozynest.cozyapis.service.impl.CancelledSubscriptionDateServiceImpl;
+import in.cozynest.cozyapis.service.impl.SubscriptionServiceImpl;
+
+@Path("cancelledsubscriptiondate")
+@Produces("application/json")
+@Consumes("application/json")
+public class CancelledSubscriptionDateRestImpl implements ICancelledSubscriptionDateRest {
+
+	SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+
+	ICancelledSubscriptionDateService cancelledSubscriptionDateService = new CancelledSubscriptionDateServiceImpl();
+
+	@Override
+	@POST
+	@Path("add")
+	public CancelledSubscriptionDate create(@QueryParam("subscriptionId") int subscriptionId,
+			@QueryParam("datesAndShifts") String datesAndShifts) {
+		CancelledSubscriptionDate cancelledSubscriptionDate = null;
+		Subscription subscription = new SubscriptionServiceImpl().findById(subscriptionId);
+		String[] ds = datesAndShifts.split(",");
+		for (int i = 0; i < ds.length; i++) {
+			cancelledSubscriptionDate = new CancelledSubscriptionDate();
+			String[] dateAndShift = ds[i].split("/");
+			String date = dateAndShift[0];
+			CancelShift cancelShift = dateAndShift[1].equals("LUNCH") ? CancelShift.LUNCH : CancelShift.DINNER;
+			try {
+				cancelledSubscriptionDate.setSubscription(subscription);
+				cancelledSubscriptionDate.setCancelDate(formatter.parse(date));
+				cancelledSubscriptionDate.setCancelShift(cancelShift);
+				cancelledSubscriptionDateService.create(cancelledSubscriptionDate);
+			} catch (Exception e) {
+				System.out.println(
+						"pui blic class CancelledSubscriptionDateRestImpl [public CancelledSubscriptionDate create(int subscriptionId, String date, SubscriptionShift subscriptionShift) {] : "
+								+ e);
+				throw new InternalServerErrorException("Unable to create record");
+			}
+
+		}
+
+		return cancelledSubscriptionDate;
+	}
+
+	@Override
+	@DELETE
+	public void delete(@QueryParam("id") int id) {
+		CancelledSubscriptionDate cancelledSubscriptionDate = cancelledSubscriptionDateService.findById(id);
+		cancelledSubscriptionDateService.delete(cancelledSubscriptionDate);
+	}
+
+	@Override
+	@GET
+	public ArrayList<CancelledSubscriptionDate> findAll() {
+		ArrayList<CancelledSubscriptionDate> cancelledSubscriptionDate=cancelledSubscriptionDateService.findAll();
+		if(cancelledSubscriptionDate==null)
+			throw new NotFoundException("No record found");
+		
+		return cancelledSubscriptionDate;
+	}
+
+	@Override
+	@GET
+	@Path("findById/{id}")
+	public CancelledSubscriptionDate findById(@PathParam("id") int id) {
+		CancelledSubscriptionDate cancelledSubscriptionDate=cancelledSubscriptionDateService.findById(id);
+		if(cancelledSubscriptionDate==null)
+			throw new NotFoundException("No record found for this id");
+		
+		return cancelledSubscriptionDate;
+	}
+
+	@Override
+	@GET
+	@Path("findByUserId/{userId}")
+	public ArrayList<CancelledSubscriptionDate> findByUserId(@PathParam("userId") int userId) {
+		ArrayList<CancelledSubscriptionDate> cancelledSubscriptionDate=cancelledSubscriptionDateService.findByUserId(userId);
+		if(cancelledSubscriptionDate==null)
+			throw new NotFoundException("No record found for this UserId");
+		
+		return cancelledSubscriptionDate;
+	}
+
+	@Override
+	@GET
+	@Path("findBySubscriptionId/{subscriptionId}")
+	public ArrayList<CancelledSubscriptionDate> findBySubscriptionId(@PathParam("subscriptionId") int subscriptionId) {
+		ArrayList<CancelledSubscriptionDate> cancelledSubscriptionDate=cancelledSubscriptionDateService.findBySubscriptionId(subscriptionId);
+		if(cancelledSubscriptionDate==null)
+			throw new NotFoundException("No record found for this subscriptionId");
+		
+		return cancelledSubscriptionDate;
+	}
+
+	@Override
+	@GET
+	@Path("findByOrderId/{orderId}")
+	public ArrayList<CancelledSubscriptionDate> findByOrderId(@PathParam("orderId") int orderId) {
+		ArrayList<CancelledSubscriptionDate> cancelledSubscriptionDate=cancelledSubscriptionDateService.findByOrderId(orderId);
+		if(cancelledSubscriptionDate==null)
+			throw new NotFoundException("No record found for this orderId");
+		
+		return cancelledSubscriptionDate;
+	}
+
+	@Override
+	@GET
+	@Path("findByTransactionId/{transactionId}")
+	public ArrayList<CancelledSubscriptionDate> findByTransactionId(@PathParam("transactionId") int transactionId) {
+		ArrayList<CancelledSubscriptionDate> cancelledSubscriptionDate=cancelledSubscriptionDateService.findByTransactionId(transactionId);
+		if(cancelledSubscriptionDate==null)
+			throw new NotFoundException("No record found for this transactionId");
+		
+		return cancelledSubscriptionDate;
+	}
+
+	@Override
+	@GET
+	@Path("findByDate/{date}")
+	public ArrayList<CancelledSubscriptionDate> findByDate(@PathParam("date") String date) {
+		ArrayList<CancelledSubscriptionDate> cancelledSubscriptionDate=cancelledSubscriptionDateService.findByDate(date);
+		
+		if(cancelledSubscriptionDate==null)
+			throw new NotFoundException("No record found for this date");
+		
+		return cancelledSubscriptionDate;
+	}
+
+	@Override
+	@GET
+	@Path("findByDate/{date}/subscriptionShift/{subscriptionShift}")
+	public ArrayList<CancelledSubscriptionDate> findByDateAndSubscriptionShift(@PathParam("date") String date,
+			@PathParam("subscriptionShift") String subscriptionShift) {
+		 ArrayList<CancelledSubscriptionDate> cancelledSubscriptionDate=cancelledSubscriptionDateService.findByDateAndSubscriptionShift(date, subscriptionShift);
+		 
+
+			if(cancelledSubscriptionDate==null)
+				throw new NotFoundException("No record found for this date and subscriptionShift");
+			
+			return cancelledSubscriptionDate;
+	}
+
+	@Override
+	@GET
+	@Path("findByDate/{date}/subscriptionShift/{subscriptionShift}/userId/{userId}")
+	public ArrayList<CancelledSubscriptionDate> findByDateAndSubscriptionShiftAndUserId(
+			@PathParam("date") String date, @PathParam("subscriptionShift") String subscriptionShift,
+			@PathParam("userId") int userId) {
+		ArrayList<CancelledSubscriptionDate> cancelledSubscriptionDate=cancelledSubscriptionDateService.findByDateAndSubscriptionShiftAndUserId(date, subscriptionShift,
+				userId);
+		if(cancelledSubscriptionDate==null)
+			throw new NotFoundException("No record found for this date and subscriptionShift and userId");
+		
+		return cancelledSubscriptionDate;
+	}
+
+}

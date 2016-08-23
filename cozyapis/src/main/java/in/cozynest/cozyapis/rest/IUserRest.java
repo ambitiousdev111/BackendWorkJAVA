@@ -1,0 +1,24 @@
+package in.cozynest.cozyapis.rest;
+
+import in.cozynest.cozyapis.model.User;
+import in.cozynest.cozyapis.model.User.Gender;
+
+public interface IUserRest {
+
+	public User create(String name, String phone, String dateOfBirth, Gender gender,String email,String profession,String password);
+
+	public User update(int id, String name, String phone, Gender gender, String dateOfBirth, String profession, String email);
+
+	public User findByUserId(String userId);
+
+	public User findByPhone(String phone);
+
+	public User findByGeneratedUserIdOrPhone(String phone, String userId);
+	
+
+	public User findByEmail(String email);
+	
+	public User findById(int id);
+
+
+}

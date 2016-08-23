@@ -1,0 +1,45 @@
+package in.cozynest.cozyapis.dao;
+
+import java.util.ArrayList;
+
+import in.cozynest.cozyapis.model.User;
+
+public interface IUserDao {
+
+	public boolean exists(int pk);
+
+	public long count();
+
+	public User create(User user);
+
+	public User update(User user);
+
+	public void delete(User user);
+
+	public ArrayList<User> findAll();
+
+	public User findById(int id);
+
+	public User findByPhone(String phone);
+
+	public User findByGeneratedUserId(String userId);
+
+	public User findByGeneratedUserIdOrPhone(String userId, String phone);
+	
+	public User findByPhoneAndWithoutCurrentPK(String phone, int pk);
+	
+	public User findByGeneratedUserIdAndWithoutCurrentPK(String generatedUserId, int pk);
+
+	public User findByPhoneAndPassword(String phone, String password);
+	
+	public User findByGeneratedUserIdAndPassword(String generatedUserId,String password);
+	
+	public User findByEmailAndPassword(String email,String password);
+	
+	public User findByEmail(String email);
+	
+	
+	
+	
+
+}

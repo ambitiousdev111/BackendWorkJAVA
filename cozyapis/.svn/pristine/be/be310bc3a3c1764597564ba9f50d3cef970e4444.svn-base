@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0/EN" "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+	<session-factory>
+		<property name='connection.driver_class'>com.mysql.jdbc.Driver</property>
+		<property name='hibernate.connection.url'>jdbc:mysql://localhost:3306/cozyapis</property>
+		<property name='hibernate.connection.username'>root</property>
+		<property name='hibernate.connection.password'>root</property>
+
+		<property name='hibernate.connection.pool_size'>1</property>
+		<property name='dialect'>org.hibernate.dialect.MySQLDialect</property>
+		<property name='show_sql'>true</property>
+		<property name='hbm2ddl.auto'>update</property>
+
+		<mapping class='in.cozynest.cozyapis.model.User' />
+		<mapping class='in.cozynest.cozyapis.model.UserWallet' />
+		<mapping class='in.cozynest.cozyapis.model.Order' />
+		<mapping class='in.cozynest.cozyapis.model.Subscription' />
+		<mapping class='in.cozynest.cozyapis.model.CancelledSubscriptionDate' />		
+		<mapping class='in.cozynest.cozyapis.model.Transaction' />
+		<mapping class='in.cozynest.cozyapis.model.Token' />
+		<mapping class='in.cozynest.cozyapis.model.Package' />
+		<mapping class='in.cozynest.cozyapis.model.PackageItems' />
+		<mapping class='in.cozynest.cozyapis.model.UserScope' />
+		
+	</session-factory>
+</hibernate-configuration>

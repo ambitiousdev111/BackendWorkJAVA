@@ -1,0 +1,83 @@
+package in.cozynest.cozyapis.dao.impl;
+
+import java.util.ArrayList;
+
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+
+import in.cozynest.cozyapis.dao.ITokenDao;
+import in.cozynest.cozyapis.exception.InternalServerErrorException;
+import in.cozynest.cozyapis.hibernate.HibernateUtility;
+import in.cozynest.cozyapis.model.Token;
+
+public class TokenDaoImpl extends GenericDaoImpl<Token> implements ITokenDao {
+
+	Session session;
+
+	public TokenDaoImpl() {
+		super(Token.class);
+	}
+
+	@Override
+	public boolean exists(int pk) {
+		// TODO Auto-generated method stub
+		return super.exists(pk);
+	}
+
+	@Override
+	public long count() {
+		// TODO Auto-generated method stub
+		return super.count();
+	}
+
+	@Override
+	public Token create(Token token) {
+		// TODO Auto-generated method stub
+		return super.create(token);
+	}
+
+	@Override
+	public Token update(Token token) {
+		// TODO Auto-generated method stub
+		return super.update(token);
+	}
+
+	@Override
+	public void delete(Token token) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public ArrayList<Token> findAll() {
+		// TODO Auto-generated method stub
+		return super.findAll();
+	}
+
+	@Override
+	public Token findById(int id) {
+		// TODO Auto-generated method stub
+		return super.findById(id);
+	}
+
+	@Override
+	public Token findByAccessToken(String accessToken) {
+		Token t = null;
+		try {
+			session = HibernateUtility.getSessionFactory().openSession();
+			session.beginTransaction();
+			t = (Token) session.getNamedQuery("Token.findByAccessToken").setString("accessToken", accessToken).uniqueResult();
+			session.getTransaction().commit();
+		} catch (HibernateException he) {
+			System.out.println("TokenDaoImpl [public Token findByAccessToken(String token)] : " + he);
+			throw new InternalServerErrorException("Unable to find  by AccessTOken due to hibernate exception.");
+		} catch (Exception e) {
+			System.out.println("TokenDaoImpl [public User findByAccessToken(String token)] :" + e);
+			throw new InternalServerErrorException("Unable to find user by AccessToken due to unknown exception.");
+		} finally {
+			if (session != null)
+				session.close();
+		}
+		return t;
+	}
+}
